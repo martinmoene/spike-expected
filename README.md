@@ -24,3 +24,11 @@ Conference 2007.
 
 * Ken Hagan et al. [Exploding return codes](https://groups.google.com/d/msg/comp.lang.c++.moderated/BkZqPfoq3ys/H_PMR8Sat4oJ). comp.lang.c++.moderated. 11 February 2000.
 
+
+C++11 compiler support
+----------------------
+
+* Scott Meyers. [Summary of C++11 Feature Availability in gcc and MSVC](http://www.aristeia.com/C++11/C++11FeatureAvailability.htm). 31 January 2012.
+
+* C++ Rocks. [C++11 compiler support shootout: Visual Studio, GCC, Clang, Intel](http://cpprocks.com/c11-compiler-support-shootout-visual-studio-gcc-clang-intel/). 14 March 2013.
+
