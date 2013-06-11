@@ -5,7 +5,7 @@
 // http://anto-nonco.blogspot.nl/2013/03/extending-expected-to-deal-with.html
 //
 
-#include "expected-nonco.h"
+#include "expected.h"
 
 #include <cassert>
 #include <iostream>
@@ -50,5 +50,5 @@ int main()
     return 0; // VC6
 }
 
-// cl -nologo -Wall -dep expected-nonco.cpp  && expected-nonco.exe
-// g++ -Wall -Wextra -std=c++11 -o expected-nonco.exe expected-nonco.cpp  && expected-nonco.exe
+// cl -nologo -Wall -EHsc test_expected.cpp  && test_expected.exe
+// g++ -Wall -Wextra -std=c++11 -o test_expected.exe test_expected.cpp  && test_expected.exe
