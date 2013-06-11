@@ -18,6 +18,7 @@
 #define STD11_EXCEPTION_PTR_LITE_H_INCLUDED
 
 #include <cassert>
+#include <ios>
 #include <stdexcept>
 #include <typeinfo>
 
