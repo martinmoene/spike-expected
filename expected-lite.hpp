@@ -15,7 +15,10 @@
 #define NONSTD_EXPECTED_HPP
 
 #include <exception>
-#include "exception_nonc++11.h" // std::exception_ptr
+
+#if __cplusplus < 201103L       // non-C++11 compilers
+# include "exception_c++11.h"   // std::exception_ptr, std::move()
+#endif
 
 namespace nonstd
 {

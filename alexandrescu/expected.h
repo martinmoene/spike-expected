@@ -10,8 +10,8 @@
 #include <algorithm>            // std::move()
 #include <exception>            // std::exception_ptr
 
-#if __cplusplus < 201103L
-# include "exception_nonc++11.h" // std::exception_ptr, std::move() (non-C++11)
+#if __cplusplus < 201103L       // non-C++11 compilers
+# include "exception_c++11.h"   // std::exception_ptr, std::move()
 #endif
 
 template<class T>

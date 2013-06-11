@@ -10,7 +10,9 @@
 #include <algorithm>            // std::move()
 #include <exception>            // std::exception_ptr
 
-#include "exception_nonc++11.h" // std::exception_ptr, std::move() (non-C++11)
+#if __cplusplus < 201103L       // non-C++11 compilers
+# include "exception_c++11.h"   // std::exception_ptr, std::move()
+#endif
 
 namespace std11
 {
@@ -122,6 +124,8 @@ public:
 
     // observers
 
+#if 0
+
     constexpr T const* operator ->() const;
     T* operator ->();
     constexpr T const& operator *() const;
@@ -132,6 +136,7 @@ public:
     template <class U> constexpr T value_or(U&&) const&;
     template <class U> T value_or(U&&) &&;
 
+#endif
 
     bool valid() const
     {
@@ -204,6 +209,8 @@ public:
     }
 };
 
+#if 0
+
 // 20.5.8, Relational operators
 template <class T> constexpr bool operator==(const expected<T>&, const expected<T>&);
 template <class T> constexpr bool operator<(const expected<T>&, const expected<T>&);
@@ -227,6 +234,8 @@ template <class T> constexpr expected<see below> make_expected(T&&);
 // 20.5.12, hash support
 template <class T> struct hash;
 template <class T> struct hash<expected<T> >;
+
+#endif
 
 // Factories:
 

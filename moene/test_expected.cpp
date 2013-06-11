@@ -4,7 +4,7 @@
 // Written in 2013 by Martin Moene <martin.moene@gmail.com>
 //
 
-#include "expected-moene.h"
+#include "test_expected.h"
 #include "static_visitor.h"
 
 #include <iostream>
@@ -273,7 +273,7 @@ int main()
     return 0; //VC6
 }
 
-// cl -nologo -W3 -EHsc -Ideps expected-moene.cpp && expected-moene
-// cl -nologo -W3 -EHsc -DSTD11_USE_AUTO_PTR expected-moene.cpp && expected-moene
+// cl -nologo -W3 -EHsc -Ideps test_expected.cpp && test_expected
+// cl -nologo -W3 -EHsc -DSTD11_USE_AUTO_PTR test_expected.cpp && test_expected
 
-// g++ -Wall -Wextra -std=c++11 -o expected-moene.exe expected-moene.cpp && expected-moene
+// g++ -Wall -Wextra -std=c++11 -o test_expected.exe test_expected.cpp && test_expected
