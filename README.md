@@ -32,3 +32,10 @@ C++11 compiler support
 
 * C++ Rocks. [C++11 compiler support shootout: Visual Studio, GCC, Clang, Intel](http://cpprocks.com/c11-compiler-support-shootout-visual-studio-gcc-clang-intel/). 14 March 2013.
 
+
+Other
+-----
+
+* Herb Sutter. [Style Case Study #3: Construction Unions](http://www.gotw.ca/gotw/085.htm). GotW #85. 2009
+
+* Kevin T. Manley. [Using Constructed Types in C++ Unions](http://collaboration.cmc.ec.gc.ca/science/rpn/biblio/ddj/Website/articles/CUJ/2002/0208/manley/manley.htm). C/C++ Users Journal, 20(8), August 2002.
