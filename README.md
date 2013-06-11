@@ -22,5 +22,5 @@ Conference 2007.
 
 * Andrei Alexandrescu. [Error Handling in C++: Are we inching towards a total solution?](http://accu.org/index.php/conferences/2002/speakers2002). ACCU Conference 2002.
 
-* Ken Hagan et al. [Exploding return codes](https://groups.google.com/forum/?fromgroups#!topic/comp.lang.c++.moderated/BkZqPfoq3ys). comp.lang.c++.moderated. 11 February 2000.
+* Ken Hagan et al. [Exploding return codes](https://groups.google.com/d/msg/comp.lang.c++.moderated/BkZqPfoq3ys/H_PMR8Sat4oJ). comp.lang.c++.moderated. 11 February 2000.
 
