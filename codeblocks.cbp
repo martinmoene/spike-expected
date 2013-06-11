@@ -14,7 +14,7 @@
 		<Unit filename="README.md" />
 		<Unit filename="alexandrescu/expected.h" />
 		<Unit filename="alexandrescu/test_expected.cpp" />
-		<Unit filename="exception_nonc++11.h" />
+		<Unit filename="exception_c++11.h" />
 		<Unit filename="exception_ptr_lite.h" />
 		<Unit filename="expected-lite.IN.hpp" />
 		<Unit filename="expected-lite.hpp" />
@@ -24,6 +24,8 @@
 		<Unit filename="nonco/expected.h" />
 		<Unit filename="nonco/test_expected.cpp" />
 		<Unit filename="static_visitor.h" />
+		<Unit filename="std_optional/n3527-std_optional_r4.html" />
+		<Unit filename="std_optional/n3527-std_optional_r4.pdf" />
 		<Unit filename="std_optional/optional.hpp" />
 		<Unit filename="test_expected_lite.cpp" />
 		<Extensions>
