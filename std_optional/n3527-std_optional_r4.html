@@ -1,0 +1,2456 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd"><html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+
+<style type="text/css"><!--
+/* Effective stylesheet produced by snapshot save */
+pre { margin-left: 20pt; }
+pre > i { font-family: "OCR A Extended","Consolas","Lucida Console",monospace; font-style: italic; }
+code > i { font-family: "OCR A Extended","Consolas","Lucida Console",monospace; font-style: italic; }
+pre > em { font-family: "OCR A Extended","Consolas","Lucida Console",monospace; font-style: italic; }
+code > em { font-family: "OCR A Extended","Consolas","Lucida Console",monospace; font-style: italic; }
+body { color: rgb(0, 0, 0); background-color: rgb(255, 255, 255); }
+del { text-decoration: line-through; color: rgb(139, 0, 64); }
+ins { text-decoration: underline; color: rgb(0, 81, 0); }
+p.example { margin-left: 2em; }
+pre.example { margin-left: 2em; }
+div.example { margin-left: 2em; }
+code.extract { background-color: rgb(245, 246, 162); }
+pre.extract { margin-left: 2em; background-color: rgb(245, 246, 162); border: 1px solid rgb(225, 226, 142); }
+p.function {  }
+.attribute { margin-left: 2em; }
+.attribute dt { float: left; font-style: italic; padding-right: 1ex; }
+.attribute dd { margin-left: 0em; }
+blockquote.std { color: rgb(0, 0, 0); background-color: rgb(241, 241, 241); border: 1px solid rgb(209, 209, 209); padding-left: 0.5em; padding-right: 0.5em; }
+blockquote.stddel { text-decoration: line-through; color: rgb(0, 0, 0); background-color: rgb(255, 235, 255); border: 1px solid rgb(236, 215, 236); }
+blockquote.stdins { text-decoration: underline; color: rgb(0, 0, 0); background-color: rgb(200, 255, 200); border: 1px solid rgb(179, 235, 179); padding: 0.5em; }
+table { border: 1px solid black; border-spacing: 0px; margin-left: auto; margin-right: auto; }
+th { text-align: left; vertical-align: top; padding-left: 0.4em; padding-right: 0.4em; border: medium none; }
+td { text-align: left; vertical-align: top; padding-left: 0.4em; padding-right: 0.4em; border: medium none; }
+--></style>
+
+<title>A proposal to add a utility class to represent optional objects (Revision 4)</title>
+<script src="A%20proposal%20to%20add%20a%20utility%20class%20to%20represent%20optional%20objects%20%28Revision%204%29_files/jquery.min.js" type="text/javascript"> </script>
+<script type="text/javascript"><!--
+/* Script removed by snapshot save */
+--></script>
+</head>
+
+<body>
+
+
+<!--<table>
+<tr><td>Doc. no.</td><td>NXXXX=XX-XXXX</td></tr>
+<tr><td>Date</td><td>YYYY-MM-DD</td></tr>
+<tr><td valign='top'>Authors</td><td>Fernando Cacciola<br>Andrzej Krzemie&#x144;ski</td></tr>
+<tr><td valign='top'>Contact</td><td><a href="mailto:fernando.cacciola@gmail.com">fernando.cacciola@gmail.com</a><br><a href='mailto:akrzemi1@gmail.com'>akrzemi1@gmail.com</a></td></tr>
+<tr><td>Addresses</td><td>LWG</td></tr>
+</table>-->
+
+<h1><a name="title">A proposal to add a utility class to represent optional objects (Revision 4)</a></h1>
+
+<p>
+ISO/IEC JTC1 SC22 WG21 N3672 2013-04-19
+</p>
+
+<address>
+Fernando Cacciola, fernando.cacciola@gmail.com
+</address>
+<address>
+Andrzej Krzemie&#324;ski, akrzemi1@gmail.com
+
+</address>
+
+
+<h2><a name="intro">Introduction</a></h2>
+
+<p>Class template <code>optional&lt;T&gt;</code> proposed here is a type that may or may not store a value of type <code>T</code> in its storage space. Its interface allows to query if a value of type <code>T</code> is currently stored, and if so, to access it. The interface is based on Fernando Cacciola's Boost.Optional library<sup>[2]</sup>, shipping since March, 2003, and widely used. It requires no changes to core language, and breaks no existing code.</p>
+
+
+<h2><a name="toc">Table of contents</a></h2>
+
+<p id="toc"><ol><li><a href="#intro">Introduction</a></li><li><a href="#toc">Table of contents</a></li><li><a href="#revision">Revision history</a></li><li><a href="#impact">Impact on the Standard</a></li><li><a href="#overview">Overview of optional</a><ol><li><a href="#overview.interface">Interface of optional</a></li><li><a href="#overview.except.safety">Exception safety</a></li><li><a href="#overview.usecases">Advanced use cases</a></li><li><a href="#overview.value_ptr_comparison">Comparison with value_ptr</a></li></ol></li><li><a href="#comparison_with_boost">Comparison with Boost.Optional</a></li><li><a href="#rationale">Design rationale</a><ol><li><a href="#rationale.model">Conceptual model for optional&lt;T&gt;</a></li><li><a href="#rationale.initialization_variants">Initialization of optional&lt;T&gt;</a></li><li><a href="#rationale.default_ctor">The default constructor</a></li><li><a href="#rationale.converting_ctor">Converting constructor (from T)</a></li><li><a href="#rationale.bool_conversion">Contextual conversion to bool for checking engaged state</a></li><li><a href="#rationale.nullopt">Using tag nullopt for indicating disengaged state</a></li><li><a href="#rationale.no_nullptr">Why not nullptr</a></li><li><a href="#rationale.t_based_none">Why not a tag dependent on T? </a></li><li><a href="#rationale.access">Accessing the contained value</a></li><li><a href="#rationale.relops">Relational operators</a></li><li><a href="#rationale.resetting">Resetting the optional value</a></li><li><a href="#rationale.in_place">Tag in_place</a></li><li><a href="#rationale.requirements">Requirements on T</a></li><li><a href="#rationale.refs">Optional references</a></li><li><a href="#rationale.noexcept">Exception specifications</a></li><li><a href="#rationale.constexpr">Making optional a literal type</a></li><li><a href="#rationale.moved_from">Moved-from state</a></li><li><a href="#rationale.reset_syntax">The op = {} syntax</a></li><li><a href="#rationale.swap_reqs">Requirements for swap</a></li><li><a href="#rationale.io">IO operations</a></li><li><a href="#rationale.value_or">Function value_or</a></li><li><a href="#rationale.make_optional">Function make_optional</a></li><li><a href="#rationale.header">Header &lt;utility&gt; or &lt;optional&gt;?</a></li><li><a href="#rationale.initializer_list">Handling initializer_list</a></li><li><a href="#rationale.optional_optional">optional&lt;optional&lt;T&gt;&gt;</a></li></ol></li><li><a href="#open_questions">Open questions</a><ol><li><a href="#open_questions.allocator">Allocator support</a></li></ol></li><li><a href="#wording">Proposed wording</a><ol><li><a href="#optional">20.5 Optional objects [optional]</a><ol><li><a href="#optional.general">20.5.1 In general [optional.general]</a></li><li><a href="#optional.synop">20.5.2 Header &lt;optional&gt; synopsis [optional.synop]</a></li><li><a href="#optional.defs">20.5.3 Definitions [optional.defs]</a></li><li><a href="#optional.object">20.5.4 optional for object types [optional.object]</a><ol><li><a href="#optional.object.ctor">20.5.4.1 Constructors [optional.object.ctor]</a></li><li><a href="#optional.object.dtor">20.5.4.2 Destructor  [optional.object.dtor]</a></li><li><a href="#optional.object.assign">20.5.4.3 Assignment  [optional.object.assign]</a></li><li><a href="#optional.object.swap">20.5.4.4 Swap [optional.object.swap]</a></li><li><a href="#optional.object.observe">20.5.4.5 Observers  [optional.object.observe]</a></li></ol></li><li><a href="#optional.inplace">20.5.5 In-place construction  [optional.inplace]</a></li><li><a href="#optional.nullopt">20.5.6 Disengaged state indicator  [optional.nullopt]</a></li><li><a href="#optional.bad_optional_access">20.5.7 Class bad_optional_access  [optional.bad_optional_access]</a></li><li><a href="#optional.relops">20.5.8 Relational operators  [optional.relops]</a></li><li><a href="#optional.nullops">20.5.9 Comparison with nullopt [optional.nullops]</a></li><li><a href="#optional.comp_with_t">20.5.10 Comparison with T [optional.comp_with_t]</a></li><li><a href="#optional.specalg">20.5.11 Specialized algorithms [optional.specalg]</a></li><li><a href="#optional.hash">20.5.12 Hash support [optional.hash]</a></li></ol></li></ol></li><li><a href="#optional_ref">Auxiliary proposal — optional references</a><ol><li><a href="#optional_ref.overview">Overview</a></li><li><a href="#optional_ref.use_cases">Practical use cases</a></li><li><a href="#optional_ref.rationale.assign">Assignment for optional references</a></li><li><a href="#optional_ref.rationale.rref_binding">No rvalue binding for optional references</a></li></ol></li><li><a href="#implementability">Implementability</a></li><li><a href="#acknowledgements">Acknowledgements</a></li><li><a href="#literature">References</a></li></ol></p>
+
+
+<h2><a name="revision">Revision history</a></h2>
+
+
+<p>Changes since R4C</p><p>
+</p><ul>
+<li>Removed all relational operators except operator== and operator&lt;.
+</li></ul>
+
+<p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3527.html">N3527</a>:</p>
+<ul>
+  <li>Renamed tag <code>emplace</code> to <code>in_place</code> based on feedback from LEWG.</li>
+  <li>Removed the Motivation section.</li>
+  <li>Added description of <code>op = {}</code> syntax and explained why we had to apply some tricks to support it. See <a href="#rationale.reset_syntax">The <code>op = {}</code> syntax</a>.</li>
+  <li>Clarified why we do not require in function template <code>swap</code> that <code>T</code> be MoveAssignamle. See <a href="#rationale.swap_reqs">Requirements for <code>swap</code></a>.</li>
+  <li>Added short discussion on the choice of the header. See <a href="#rationale.header">Header <code>&lt;utility&gt;</code> or <code>&lt;optional&gt;</code>?</a>.</li>
+  <li>Optional's <code>operator&lt;</code> now uses <code>less&lt;T&gt;</code> rather than <code>T::operator&lt;</code>. See <a href="#rationale.relops">Relational operators</a> for rationale.</li>
+  <li>Provided a comparison between <code>optional</code> in this proposal and <code>boost::optional</code>. See <a href="#comparison_with_boost">Comparison with Boost.Optional</a>.</li>
+  <li>Added "open questions" section.</li>
+  <li>Reduced the discussion in Rationale section by omitting some alternatives we considered but rejected.</li>
+  <li>Removed namespace <code>experimental</code>, because we are not targetting a TS anymore.</li>
+  <li>Applied fixes in the standardese as per LWG's feedback.</li>
+  <li>Function <code>emplace</code> now returns <code>void</code> — LWG recommendation.</li>
+  <li>All mixed ordering relations now use only <code>less&lt;T&gt;</code> in implementation — LWG recommendation.</li>
+  <li>Clarified (in section <a href="#overview">Overview of <code>optional</code></a>) that Optional cannot be implemented with <code>aligned_storage</code> .</li>
+  <li>Reworded complicated Effects elements for copy/move assignment and swap, so that they are easier to read — LWG recommendation.</li>
+</ul>
+
+<p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3406.html">N3406=12-0096</a>:</p>
+<ul>
+  <li>Wording changes are now relative to <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3485.pdf">N3485</a>.</li>
+  <li><code>optional&lt;T&gt;</code> is hashable for hashable <code>T</code>’s.</li>
+  <li>Optional refereces are now an auxiliary proposal — this gives the possibility to accept optional values without references.</li>
+  <li>Optional refereces are now assignamble and swappable.</li>
+  <li><code>get_value_or</code> is now <code>optional</code>-specific member function, renamed to <code>value_or</code>.</li>
+  <li>Added member function <code>value</code> — an alternative to <code>operator*</code> that checks if the object is engaged.</li>
+  <li><code>optional&lt;T&gt;</code> is a literal type.</li>
+  <li>Mixed relational operations between <code>optional&lt;T&gt;</code> and <code>T</code> are now allowed.</li>
+  <li>Removed reference implementation. We now only provide the implementation of the parts that we consider non-trivial.</li>
+</ul>
+
+<p>Changes since <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2005/n1878.htm">N1878=05-0138</a>:</p>
+<ul>
+  <li>Revised wording; the changes are now relative to <a href="http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n3290.pdf">N3290</a>.</li>
+  <li>Removed any form of assignment for optional references.</li>
+  <li>Removed duplicate interface for accessing the value stored by the optional.</li>
+  <li>Added in-place construction and assignment.</li>
+  <li>Now using different tag <code>nullopt</code> instead of <code>nullptr</code> to indicate the 'disengaged' (uninitialized) optional.</li>
+  <li>Included C++11 features: move semantics, <code>noexcept</code>, variadic templates, perfect forwarding, static initialization.</li>
+  <li>Changed the motivation section.</li>
+  <li>Changed the design rationale section.</li>
+  <li>Added reference implementation</li>
+</ul>
+
+
+
+<h2><a name="impact">Impact on the Standard</a></h2>
+
+
+<p>This proposal depends on library proposal <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3471.html">N3471</a>: it requires that Standard Library components <code>move</code>, <code>forward</code> and member functions of <code>initializer_list</code> are <code>constexpr</code>. The paper has already been incorporated into the Working Draft of the Standard <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3485.pdf">N3485</a>. This proposal also depends on language proposal <a href="http://isocpp.org/files/papers/www.open-std.org/jtc1/sc22/wg21/docs/papers/2007/n2439.htm">N2439</a> (Rvalue references for <code>*this</code>). While this feature proposal has been incorporated into C++11, we are aware of only two compilers that implemented it: Clang and GCC 4.8.1. There is a risk that if compiler vendors do not implement it, they will also not be able to fully implement this proposal. In that case, the signature of member function <code>optional&lt;T&gt;::value_or</code> from this proposal will need to be modified.</p>
+
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3507.html">N3507</a> (A URI Library for C++) depends on this library.</p>
+
+
+
+<h2><a name="overview">Overview of <code>optional</code></a></h2>
+
+
+<p>The primary purpose of <code>optional&lt;T&gt;</code>'s interface is to be able to answer the quesiotn "do you contain a value of type <code>T</code>?", and iff the answer is "yes", to provide access to the contained value. Conceptually, <code>optional</code> can be illustrated by the following structure.</p>
+
+<pre>template &lt;typename T&gt;
+struct optional
+{
+  bool is_initialized_;
+  typename aligned_storage&lt;sizeof(T), alignof(T)&gt;::type storage_;
+};</pre>
+
+<p>Flag <code>is_initialized_</code> stores the information if <code>optional</code> has been assigned a value of type <code>T</code>. <code>storage_</code> is a raw fragment of memory (allocated within <code>optional</code> object) capable of storing an object of type <code>T</code>. Objects in this storage are created and destroyed using placement <code>new</code> and pseudo destructor call as member functions of <code>optional</code> are executed and based on the value of flag <code>is_initialized_</code>.</p> 
+
+<p><strong>Note:</strong> the above representation is only conceptual. In fact, our aggressive requirements for <code>constexpr</code> constructors prevent the usage of <code>aligned_storage</code> in the implementation of <code>optional</code>. See section <a href="#implementability">Implementability</a> for an overview of a possible reference implementation.</p>
+
+<p>Alternatively, one can think of <code>optional&lt;T&gt;</code> as <code>pair&lt;bool, T&gt;</code>, with one important difference: if <code>first</code> is <code>false</code>, member <code>second</code> has never been even initialized, even with default constructor or value-initialization.</p>
+
+<p>The basic usage of <code>optional&lt;T&gt;</code> can be illustrated with the following example.</p>
+
+<pre>optional&lt;int&gt; str2int(string);    <em>// converts int to string if possible</em>
+
+int get_int_form_user()
+{
+  string s;
+
+  for (;;) {
+    cin &gt;&gt; s;
+    optional&lt;int&gt; o = str2int(s); <em>// 'o' may or may not contain an int</em>
+    if (o) {                      <em>// does optional contain a value?</em>
+      return *o;                  <em>// use the value</em>
+    }
+  }
+}
+</pre>
+
+
+<h3><a name="overview.interface">Interface of <code>optional</code></a></h3>
+
+<p>Default construction of <code>optional&lt;T&gt;</code> creates an an object that stores no value of type <code>T</code>. No default constructor of <code>T</code> is called. <code>T</code> doesn't even need to be <code>DefaultConstructible</code>. We say that thus created optional object is <em>disengaged</em>. We use a pair of somewhat arbitrary names, 'engaged' and 'disengaged'. A default-constructed optional object is initialized (the lifetime of <code>optional&lt;T&gt;</code> has started), but it is disengaged (the lifetime of the contained object has not yet started). Trying to access the value of <code>T</code> in this state causes undefined behavior. The only thing we can do with a disengaged optional object is to query whether it is engaged, copy it, compare it with another <code>optional&lt;T&gt;</code>, or <em>engage</em> it.</p>
+
+<pre>optional&lt;int&gt; oi;                 <em>// create disengaged object</em>
+optional&lt;int&gt; oj = nullopt;       <em>// alternative syntax</em>
+oi = oj;                          <em>// assign disengaged object</em>
+optional&lt;int&gt; ok = oj;            <em>// ok is disengaged</em>
+
+if (oi)  assert(false);           <em>// 'if oi is engaged...'</em>
+if (!oi) assert(true);            <em>// 'if oi is disengaged...'</em>
+
+if (oi != nullopt) assert(false); <em>// 'if oi is engaged...'</em>
+if (oi == nullopt) assert(true);  <em>// 'if oi is disengaged...'</em>
+
+assert(oi == ok);                 <em>// two disengaged optionals compare equal</em>
+</pre>
+
+<p>Tag <code>nullopt</code> represents the disengaged state of an optional object. This reflects our conceptual model of optional objects: <code>optional&lt;T&gt;</code> can be thought of as a <code>T</code> with one additional value <code>nullopt</code>. Being disengaged is just another value of <code>T</code>. Thus, <code>optional&lt;unsigned&gt;</code> can be thought of as a type with possible range of values <code>{nullopt, 0, 1, ...}</code>. Value <code>nullopt</code> is always picked by the default constructor.</p>
+
+
+<p>We can create engaged optional objects or engage existing optional objects by using converting constructor (from type <code>T</code>) or by assigning a value of type <code>T</code>.
+
+</p><pre>optional&lt;int&gt; ol{1};              <em>// ol is engaged; its contained value is 1</em>
+ok = 2;                           <em>// ok becomes engaged; its contained value is 2</em>
+oj = ol;                          <em>// oj becomes engaged; its contained value is 1</em>
+
+assert(oi != ol);                 <em>// disengaged != engaged</em>
+assert(ok != ol);                 <em>// different contained values</em>
+assert(oj == ol);                 <em>// same contained value</em>
+assert(oi &lt; ol);                  <em>// disengaged &lt; engaged</em>
+assert(ol &lt; ok);                  <em>// less by contained value</em>
+</pre>
+
+<p>Copy constructor and copy assignment of <code>optional&lt;T&gt;</code> copies both the engaged/disengaged flag and the contained value, if it exists. </p>
+
+<pre>optional&lt;int&gt; om{1};              <em>// om is engaged; its contained value is 1</em>
+optional&lt;int&gt; on = om;            <em>// on is engaged; its contained value is 1</em>
+om = 2;                           <em>// om is engaged; its contained value is 2</em>
+assert (on != om);                <em>// on still contains 1. They are not pointers</em>
+</pre>
+
+<p>We access the contained value using the indirection operator.</p>
+
+<pre>int i = *ol;                      <em>// i obtains the value contained in ol</em>
+assert(i == 1);
+*ol = 9;                          <em>// the valuesagety  contained in ol becomes 9</em>
+assert(*ol == 9);
+</pre>
+
+<p>We also provide consistent <code>operator-&gt;</code>. Even though <code>optional</code> provides operators <code>-&gt;</code> and <code>*</code> it is not a pointer. Unlike pointers, it has full value semantics: deep copy construction, deep copy assignmet, deep equality and less-than comparison, and constness propagation (from optional object to the contained value).</p>
+
+<pre>int p = 1;
+optional&lt;int&gt; op = p;
+assert(*op == 1);
+p = 2;                         
+assert(*op == 1);                 <em>// value contained in op is separated from p</em>
+</pre>
+
+<p>The typical usage of <code>optional</code> requires an if-statement.</p>
+
+<pre>if (ol)                      
+  process(*ol);                   <em>// use contained value if present</em>
+else
+  processNil();                   <em>// proceed without contained value</em>
+  
+if (!om)   
+  processNil();
+else  
+  process(*om);     
+</pre>
+
+ 
+<p>If the action to be taken for disengaged <code>optional</code> is to proceed with the default value, we provide a convenient idiom: </p> 
+
+<pre>process(ol.value_or(0));      <em>// use 0 if ol is disengaged</em>
+</pre>
+
+<p>Sometimes the initialization from <code>T</code> may not do. If we want to skip the copy/move construction for <code>T</code> because it is too expensive or simply not available, we can call an 'emplacing' constructor, or function <code>emplace</code>.</p>
+
+<pre>optional&lt;Guard&gt; oga;                     <em>// Guard is non-copyable (and non-moveable)</em>     
+optional&lt;Guard&gt; ogb(in_place, "res1");    <em>// initializes the contained value with "res1" </em>           
+optional&lt;Guard&gt; ogc(in_place);            <em>// default-constructs the contained value</em>
+
+oga.emplace("res1");                     <em>// initializes the contained value with "res1" </em> 
+oga.emplace();                           <em>// destroys the contained value and </em>
+                                         <em>// default-constructs the new one</em>
+</pre>
+
+<p>There are two ways to <em>disengage</em> a perhaps engaged optional object:</p>
+
+<pre>ok = nullopt;                      <em>// if ok was engaged calls T's dtor</em>
+oj = {};                           <em>// assigns a temporary disengaged optional</em>
+oga = nullopt;                     <em>// OK: disengage the optional Guard</em>
+ogb = {};                          <em>// ERROR: Guard is not Moveable</em>
+</pre>
+
+
+<p>Optional propagates constness to its contained value:</p>
+
+<pre>const optional&lt;int&gt; c = 4; 
+int i = *c;                        <em>// i becomes 4</em>
+*c = i;                            <em>// ERROR: cannot assign to const int&amp;</em>
+</pre>
+
+
+
+<h3><a name="overview.except.safety">Exception safety</a></h3>
+
+
+<p>Type <code>optional&lt;T&gt;</code> is a wrapper over <code>T</code>, thus its exception safety guarantees depend on exception safety guarantees of <code>T</code>. We expect (as is the case for the entire C++ Standard Library) that destructor of <code>T</code> does not throw exceptions. Copy assignment of <code>optional&lt;T&gt;</code> provides the same exception guarantee as copy assignment of <code>T</code> and copy constructor of <code>T</code> (i.e., the weakest of the two). Move assignment of <code>optional&lt;T&gt;</code> provides the same exception guarantee as move assignment of <code>T</code> and move constructor of <code>T</code>. Member function <code>emplace</code> provides basic guarantee: if exception is thrown, <code>optional&lt;T&gt;</code> becomes disengaged, regardless of its prior state. </p>
+
+
+
+<h3><a name="overview.usecases">Advanced use cases</a></h3>
+
+
+<p>With <code>optional&lt;T&gt;</code> problems described in Motivation section can be solved as follows. For lazy initialization:</p>
+
+
+<pre>class Car 
+{
+  mutable mutex m_;
+  mutable optional&lt;const Engine&gt; engine_;
+  mutable optional&lt;const int&gt; mileage_
+  
+public:
+  const Engine&amp; engine() const
+  {
+    lock_guard&lt;mutex&gt; _(m_);
+    if (engine_ == nullopt) engine_.emplace( engineParams() );
+    return *engine_;
+  }
+  
+  const int&amp; mileage() const
+  {
+    lock_guard&lt;mutex&gt; _(m_);
+    if (!mileage_) mileage_ = initMileage();
+    return *mileage_;
+  }
+};</pre>
+
+<p>The algorithm for finding the greatest element in vector can be written as: </p>
+
+
+<pre>optional&lt;int&gt; find_biggest( const vector&lt;int&gt;&amp; vec )
+{
+  optional&lt;int&gt; biggest;  <em>// initialized to not-an-int</em>
+  for (int val : vec) {
+    if (!biggest || *biggest &lt; val) {
+      biggest = val;
+      <em>// or: biggest.emplace(val);</em>
+    }
+  }
+  return biggest;
+} 
+</pre>
+
+
+<p>Missing return values are naturally modelled by optional values:</p>
+
+<pre>optional&lt;char&gt; c = stream.getNextChar();
+optional&lt;int&gt; x = DB.execute("select ...");
+
+storeChar( c.value_or('\0') );
+storeCount( x.value_or(-1) );
+</pre>
+
+<p>Optional arguments can be implemented as follows:</p><p>
+
+</p><pre>template &lt;typename T&gt;
+T getValue( optional&lt;T&gt; newVal = nullopt )
+{
+  if (newVal) {
+    cached = *newVal;     
+  }
+  return cached;      
+}
+</pre>
+
+<p>Manually controlling the life-time of guard-like objects can be achieved by emplacement operations and <code>nullopt</code> assignment:</p>
+
+<pre>{
+  optional&lt;Guard&gt; grd1{in_place, "res1", 1};   <em>// guard 1 initialized</em>
+  optional&lt;Guard&gt; grd2;
+
+  grd2.emplace("res2", 2);                     <em>// guard 2 initialized</em>
+  grd1 = nullopt;                              <em>// guard 1 released</em>
+
+}                                              <em>// guard 2 released (in dtor)</em>
+</pre>
+
+<p>It is possible to use <code>tuple</code> and <code>optional</code> to emulate multiple return valuse for types without default constructor:</p>
+
+<pre>tuple&lt;Date, Date, Date&gt; getStartMidEnd();
+void run(Date const&amp;, Date const&amp;, Date const&amp;);
+<em>// ...</em>
+
+optional&lt;Date&gt; start, mid, end;           <em>// Date doesn't have default ctor (no good default date)</em>
+
+tie(start, mid, end) = getStartMidEnd();
+run(*start, *mid, *end); 
+</pre>
+
+
+
+<h3><a name="overview.value_ptr_comparison">Comparison with <code>value_ptr</code></a></h3>
+
+<p><a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3339.pdf">N3339</a><sup>[7]</sup> proposes a smart pointer template <code>value_ptr</code>. In short, it is a smart pointer with deep copy semantics. It has a couple of features in common with <code>optional</code>: both contain the notion of optionality, both are deep-copyable. Below we list the most important differences. </p>
+
+<p><code>value_ptr</code> requires that the pointed-to object is allocated in the free store. This means that the <code>sizeof(value_ptr&lt;T&gt;)</code> is fixed irrespective of <code>T</code>. <code>value_ptr</code> is 'polymorphic': object of type <code>value_ptr&lt;T&gt;</code> can point to an object of type <code>DT</code>, derived from <code>T</code>. The deep copy preserves the dynamic type. <code>optional</code> requires no free store allocation: its creation is more efficient; it is not "polymorphic".</p>
+
+<p>Relational operations on <code>value_ptr</code> are shallow: only addresses are compared. Relational operations on <code>optional</code> are deep, based on object's value. In general, <code>optional</code> has a well defined value: being disengaged and the value of contained value (if it exists); this value is expressed in the semantics of equality operator. This makes <code>optional</code> a full value-semantic type. Comparison of <code>value_ptr</code> does not have this property: copy semantics are incompatible with equality comparison semantics: a copy-constructed <code>value_ptr</code> does not compare equal to the original. <code>value_ptr</code> is not a value semantic type. 
+</p>
+
+
+
+<h2><a name="comparison_with_boost">Comparison with Boost.Optional</a></h2>
+
+<p>This proposal basically tries to follow Boost.Optional's interface. Here we list the significant differences.</p>
+
+<table>
+<tbody><tr><th>aspect</th><th>this proposal</th><th>Boost.Optional</th></tr>
+<tr><td>Move semantics</td><td>yes</td><td>no</td></tr>
+<tr><td>noexcept</td><td>yes</td><td>no</td></tr>
+<tr><td>hash support</td><td>yes</td><td>no</td></tr>
+<tr><td>a throwing value accessor</td><td>yes</td><td>no</td></tr>
+<tr><td>literal type</td><td>partially</td><td>no</td></tr>
+<tr><td>in place construction</td><td><code><code>emplace</code>, tag <code>in_place</code></code></td><td>utility <code>in_place_factory</code></td></tr>
+<tr><td>disengaged state tag</td><td><code>nullopt</code></td><td><code>none</code></td></tr>
+<tr><td>optional references</td><td>no (optionally)</td><td>yes</td></tr>
+<tr><td>conversion from <code>optional&lt;U&gt;</code> to <code>optional&lt;T&gt;</code></td><td>no</td><td>yes</td></tr>
+<tr><td>dupplicated interface functions <br>(<code>is_initialized</code>, <code>reset</code>, <code>get</code>)</td><td>no</td><td>yes</td></tr>
+<tr><td>explicit convert to ptr <br>(<code>get_ptr</code>)</td><td>no</td><td>yes</td></tr>
+</tbody></table>
+
+
+<h2><a name="rationale">Design rationale</a></h2>
+
+
+<p>The very minimum, ascetic interface for optional objects — apart from copy/move — could consist of two constructors and two functions:</p>
+
+<pre><em>// not proposed</em>
+int i = 9;
+optional&lt;int&gt; oi{engaged, i};          <em>// create engaged</em>
+optional&lt;int&gt; oj{disengaged};          <em>// create disengaged</em>
+if (oi.is_engaged()) {                 <em>// contains value?</em>
+  oi.get_value();                      <em>// access the value</em>
+}
+</pre>
+
+<p>The reason we provide different and richer interface is motivated by users' convenience, performance improvements, secondary goals we want to acheive, and the attempt to standardize the existing practice.</p>
+
+<p>Nearly every function in the interface of <code>optional</code> has risen some controversies. Different people have different expectations and different concerns and it is not possible to satisfy all conflicting requirements. Yet, we believe that <code>optional</code> is so universally useful, that it is worth standardizing it even at the expense of introducing a controversial interface. The current proposal reflects our arbitrary choice of balance between unambiguousity, genericity and flexibility of the interface. The interface is based on Fernanndo Cacciola's <a href="http://www.boost.org/doc/libs/1_48_0/libs/optional/doc/html/index.html">Boost.Optional</a> library,<sup>[2]</sup> and the users' feedback. The library has been widely accepted, used and even occasionally recommended ever since. 
+</p>
+
+
+
+<h3><a name="rationale.model">Conceptual model for <code>optional&lt;T&gt;</code></a></h3>
+
+
+<p>Optional objects serve a number of purposes and a couple of conceptual models can be provided to answer the question what <code>optional&lt;T&gt;</code> really is and what interface it should provide. The three most common models are:</p>
+
+<ol>
+  <li>Just a <code>T</code> with deferred initialization (and additional interface to check if the object has already been initialized).</li>
+  <li>A discriminated union of types <code>nullopt_t</code> and <code>T</code>.</li>
+  <li>A container of <code>T</code>'s with the maximum size of 1.</li>
+</ol>
+
+<p>While (1) was the first motivation for <code>optional</code>, we do not choose to apply this model, because type <code>optional&lt;T&gt;</code> would not be a value semantic type: it would not model concept <code>Regular</code> (if C++ had concepts). In particular, it would be not clear whether being engaged or disengaged is part of the object's state. Programmers who wish to adopt this view, and don't mind the mentioned difficulties, can still use <code>optional</code> this way:</p>
+
+<pre>optional&lt;int&gt; oi;
+initializeSomehow(oi);
+
+int i = (*oi);
+use(*oi);
+(*oi) = 2;
+cout &lt;&lt; (*oi);
+</pre>
+
+<p>Note that this usage does not even require to check for engaged state, if one is sure that the object is engaged. One just needs to use indirection operator consistently anywhere one means to use the initialized value. </p>
+
+<p>Model (2) treats <code>optional&lt;T&gt;</code> as either a value of type <code>T</code> or value <code>nullopt</code>, allocated in the same storage, along with the way of determining which of the two it is. The interface in this model requires operations such as comparison to <code>T</code>, comparison to <code>nullopt</code>, assignment and creation from either. It is easy to determine what the value of the optional object is in this model: the type it stores (<code>T</code> or <code>nullopt_t</code>) and possibly the value of <code>T</code>. This is the model that we propose.</p>
+
+<p>Model (3) treats <code>optional&lt;T&gt;</code> as a special case container. This begs for a container-like interface: <code>empty</code> to check if the object is disengaged, <code>emplace</code> to engage the object, and <code>clear</code> to disengage it. Also, the value of optional object in this model is well defined: the size of the container (0 or 1) and the value of the element if the size is 1. This model would serve our pupose equally well. The choice between models (2) and (3) is to a certain degree arbitrary. One argument in favour of (2) is that it has been used in practice for a while in Boost.Optional.</p>
+
+<p>Additionally, within the affordable limits, we propose the view that <code>optional&lt;T&gt;</code> just extends the set of the values of <code>T</code> by one additional value <code>nullopt</code>. This is reflected in initialization, assignment, ordering, and equality comparison with both <code>T</code> and <code>nullopt</code>.</p>
+
+<pre>optional&lt;int&gt; oi = 0;
+optional&lt;int&gt; oj = 1;
+optional&lt;int&gt; ok = nullopt;
+
+oi = 1;
+oj = nullopt;
+ok = 0;
+
+oi == nullopt;
+oj == 0;
+ok == 1;
+</pre>
+
+
+<h3><a name="rationale.initialization_variants">Initialization of <code>optional&lt;T&gt;</code></a></h3>
+
+
+<p>In cases <code>T</code> is a value semantic type capable of storing <em>n</em> distinct values, <code>optional&lt;T&gt;</code> can be seen as an extended <code>T</code> capable of storing <em>n</em> + 1 values: these that <code>T</code> stores and <code>nullopt</code>. Any valid initialization scheme must provide a way to put an optional object to any of these states. In addition, some <code>T</code>s (like scope guards) are not <code>MoveConstructible</code> and their optional variants still should constructible with any set of arguments that work for <code>T</code>. Two models have been identified as feasible.</p>
+
+<p>The first requires that you initialize either by providing either an already constructed <code>T</code> or the tag <code>nullopt</code>.</p>
+
+<pre>string s{"STR"};
+
+optional&lt;string&gt; os{s};                   <em> // requires Copyable&lt;T&gt;</em>
+optional&lt;string&gt; ot = s;                  <em> // requires Copyable&lt;T&gt;</em>
+optional&lt;string&gt; ou{"STR"};               <em> // requires Movable&lt;T&gt;</em>
+optional&lt;string&gt; ov = string{"STR"};      <em> // requires Movable&lt;T&gt;</em>
+
+optional&lt;string&gt; ow;                      <em> // disengaged</em>
+optional&lt;string&gt; ox{};                    <em> // disengaged</em>
+optional&lt;string&gt; oy = {};                 <em> // disengaged</em>
+optional&lt;string&gt; oz = optional&lt;string&gt;{}; <em> // disengaged</em>
+optional&lt;string&gt; op{nullopt};             <em> // disengaged</em>
+optional&lt;string&gt; oq = {nullopt};          <em> // disengaged</em>
+</pre>
+
+<p>In order to avoid calling move/copy constructor of <code>T</code>, we use a 'tagged' placement constructor: </p>
+
+<pre>optional&lt;Guard&gt; og;                       <em> // disengaged</em>
+optional&lt;Guard&gt; oh{};                     <em> // disengaged</em>
+optional&lt;Guard&gt; oi{in_place};              <em> // calls Guard{} in place</em>
+optional&lt;Guard&gt; oj{in_place, "arg"};       <em> // calls Guard{"arg"} in place</em>
+</pre>
+
+<p>The in-place constructor is not strictly necessary. It could be dropped because one can always achieve the same effect with a two-liner:</p>
+
+<pre>optional&lt;Guard&gt; oj;                       <em> // start disengaged</em>
+oj.emplace("arg");                        <em> // now engage</em>
+</pre>
+
+
+<p>Notably, there are two ways to create a disengaged optional object: either by using the default constructor or by calling the 'tagged constructor' that takes <code>nullopt</code>. One of these could be safely removed and <code>optional&lt;T&gt;</code> could still be initialized to any state. </p>
+
+
+
+
+<h3><a name="rationale.default_ctor">The default constructor</a></h3>
+
+
+<p>This proposal provides a default constructor for <code>optional&lt;T&gt;</code> that creates a disengaged optional. We find this feature convenient for a couple of reasons. First, it is because this behaviour is intuitive as shown in the above example of function <code>readChar</code>. It avoids a certain kind of bugs. Also, it satisfies other expectations. If I declare <code>optional&lt;T&gt;</code>  as a non-static member, without any initializer, I may expect it is already initialized to the most natural, disengaged, state regardless of whether <code>T</code> is <code>DefaultConstructible</code> or not. Also when declaring a global object, one could expect that default constructor would be initialized during static-initialization (this proposal guarantees that). One could argue that the tagged constructor could be used for that puropse: </p>
+
+<pre>optional&lt;int&gt; global = nullopt;
+
+struct X
+{
+  optional&lt;M&gt; m = nullopt;
+};
+</pre>
+
+<p>However, sometimes not providing the tag may be the result of an inadvertent omission rather than conscious decision. Because of our default constructor semantics we have to reject the initialization scheme that uses a perfect forwarding constructor. Even if this is fine, one could argue that we do not need a default constructor if we have a tagged constructor. We find this redundancy convenient. For instance, how do you resize a <code>vector&lt;optional&lt;T&gt;&gt;</code> if you do not have the default constructor? You could type:</p>
+
+<pre>vec.resize(size, nullopt);</pre>
+
+<p>However, that causes first the creation of disengaged optional, and then copying it multiple times. The use of copy constructor may incur run-time overhead and not be available for non-copyable <code>T</code>s. Also, it would be not possible to use subscript operator in maps that hold optional objects.</p>
+
+<p>Also, owing to this constructor, <code>optional</code> has a nice side-effect feature: it can make "almost <code>Regular</code>" types fully <code>Regular</code> if the lack of default constructor is the only thing they are missing. For instance consider type <code>Date</code> for representing calendar days: it is copyable movable, comparable, but is not <code>DefaultConstructible</code> because there is no meaningful default date. However, <code>optional&lt;Date&gt;</code> is <code>Regular</code> with a meaningful not-a-date state created by default.</p>
+
+
+
+<h3><a name="rationale.converting_ctor">Converting constructor (from <code>T</code>)</a></h3>
+
+
+<p>An object of type <code>T</code> is convertible to an engaged object of type <code>optional&lt;T&gt;</code>:</p>
+
+<pre>optional&lt;int&gt; oi = 1; <em>// works</em></pre>
+
+<p>This convenience feature is not strictly necessary because you can achieve the same effect by using tagged forwarding constructor:</p>
+
+<pre>optional&lt;int&gt; oi{in_place, 1};</pre>
+
+<p>If the latter appears too inconvenient, one can always use function <code>make_optional</code> described below:</p>
+ 
+<pre>optional&lt;int&gt; oi = make_optional(1); 
+auto oj = make_optional(1); 
+</pre>
+
+<p>The implicit converting constructor comes in handy in case of optional function arguments:</p>
+
+<pre>void fun(std::string s, optional&lt;int&gt; oi = nullopt);
+
+fun("dog", 2);
+fun("dog");
+fun("dog", nullopt); <em>// just to be explicit</em> 
+</pre>
+
+<p>It has been argued that the constructor from <code>T</code> should be made explicit. It is not trivial to decide whether <code>T</code> should be convertiblle to <code>optional&lt;T&gt;</code>. This is not a clear situation where value of one type is stored in another type with greater resolution, or the situation where the same abstract value is stored in a type with different internal representation. On the other hand, given our conceptual model, <code>optional&lt;T&gt;</code> can store all values of <code>T</code>, so it is possible to apply a "lossless conversion". We decided to provide the conversion, in order to (1) adhere to our conceptual model, and (2) to enable the above convenience for function argument passing. The implicit conversion naturally implies that <code>optional&lt;T&gt;</code>'s can be compared with <code>T</code>'s. This is discussed further down. </p>
+
+<p>At some point we considered the possibility to make this constructor conditionally explicit: make it explicit if <code>T</code> has an explicit copy/move constructor, and make it non-explicit if <code>T</code> has a normal, non-explicit constructor. In the end, we find explicit copy constructor so unusual that we do not find it worthwile to addressing it at the expense of complicating the design.</p>
+
+<h3><a name="rationale.bool_conversion">Contextual conversion to <code>bool</code> for checking engaged state</a></h3>
+
+
+<p>Objections have been risen to this decision. When using <code>optional&lt;bool&gt;</code>, contextual conversion to <code>bool</code> (used for checking the engaged state) might be confused with accessing the stored value. While such mistake is possible, it is not the first such case in the standard: types <code>bool*</code>, <code>unique_ptr&lt;bool&gt;</code>, <code>shared_ptr&lt;bool&gt;</code> suffer from the same potential problem, and it was never considered a show-stopper. Some have suggested that a special case in the interface should be made for <code>optional&lt;bool&gt;</code> specialization. This was however rejected because it would break the generic use of <code>optional</code>. </p>
+
+<p>Some have also suggested that a member function like <code>is_initialized</code> would more clearly indicate the intent than explicit conversion to <code>bool</code>. However, we believe that the latter is a well established idiom in C++ community as well as in the C++ Standard Library, and <code>optional</code> appears so fundamental a type that a short and familiar notation appears more appropriate. It also allows us to combine the construction and checking for being engaged in a condition:
+	</p>
+
+<pre>if (optional&lt;char&gt; ch = readNextChar()) {
+  // ...
+}
+</pre>
+
+
+<h3><a name="rationale.nullopt">Using tag <code>nullopt</code> for indicating disengaged state</a></h3>
+
+<p>The proposed interface uses special tag <code>nullopt</code> to indicate disengaged <code>optional</code> state. It is used for construction, assignment and relational operations. This might rise a couple of objections. First, it introduces redundancy into the interface:</p>
+
+<pre>optional&lt;int&gt; opt1 = nullopt; 
+optional&lt;int&gt; opt2 = {}; 
+
+opt1 = nullopt;
+opt2 = {};
+
+if (opt1 == nullopt) ...
+if (!opt2) ...
+if (opt2 == optional&lt;int&gt;{}) ...
+</pre>
+
+<p>On the other hand, there are usages where the usage of <code>nullopt</code> cannot be replaced with any other convenient notation:</p>
+
+<pre>void run(complex&lt;double&gt; v);
+void run(optional&lt;string&gt; v);
+
+run(nullopt);              <em>// pick the second overload</em>
+run({});                   <em>// ambiguous</em>
+
+if (opt1 == nullopt) ...   <em>// fine</em>
+if (opt2 == {}) ...        <em>// illegal</em>
+
+bool is_engaged( optional&lt;int&gt; o)
+{
+  return bool(o);          <em>// ok, but unclear</em>
+  return o != nullopt;     <em>// familiar</em>
+}
+</pre>
+
+<p>While some situations would work with <code>{}</code> syntax, using <code>nullopt</code> makes the programmer's intention more clear. Compare these:</p>
+
+<pre>optional&lt;vector&lt;int&gt;&gt; get1() {
+  return {};
+}
+
+optional&lt;vector&lt;int&gt;&gt; get2() {
+  return nullopt;
+}
+
+optional&lt;vector&lt;int&gt;&gt; get3() {
+  return optional&lt;vector&lt;int&gt;&gt;{};
+}
+</pre>
+
+<p>The usage of <code>nullopt</code> is also a consequence of the adapted model for optional: a discriminated union of <code>T</code> and <code>nullopt_t</code>. Also, a similar redundancy in the interface already exists in a number of components in the standard library: <code>unique_ptr</code>, <code>shared_ptr</code>, <code>function</code> (which use literal <code>nullptr</code> for the same purpose); in fact, type requirements <code>NullablePointer</code> require of types this redundancy. </p>
+
+<p>Name "nullopt" has been chosen because it clearly indicates that we are interested in creating a null (disengaged) <code>optional&lt;T&gt;</code> (of unspecified type <code>T</code>). Other short names like "null", "naught", "nothing" or "none" (used in Boost.Optional library) were rejected because they were too generic: they did not indicate unambiguously that it was <code>optional&lt;T&gt;</code> that we intend to create. Such a generic tag <code>nothing</code> could be useful in many places (e.g., in types like <code>variant&lt;nothing_t, T, U&gt;</code>), but is outside the scope of this proposal.</p>
+ 
+
+<p>Note also that the definition of tag struct <code>nullopt</code> is more complicated than that of other, similar, tags: it has explicitly deleted default constructor. This is in order to enable the reset idiom (<code>opt2 = {};</code>), which would otherwise not work because of ambiguuity when deducing the right-hand side argument.</p>
+
+
+<h3><a name="rationale.no_nullptr">Why not <code>nullptr</code></a></h3>
+
+
+<p>One could argue that since we have keyword <code>nullptr</code>, which already indicates a 'null-state' for a number of Standard Library types, not necessarily pointers (class template <code>function</code>), it could be equally well used for <code>optional</code>. In fact, the previous revision of this proposal did propose <code>nullptr</code>, however there are certain difficulties that arise when the null-pointer literal is used.</p>
+
+<p>First, the interface of <code>optional</code> is already criticized for resembling too much the interface of a (raw or smart) pointer, which incorrectly suggests external heap storage and shallow copy and comparison semantics. The "ptr" in "nullptr" would only increase this confusion. While <code>std::function</code> is not a pointer either, it also does not provide a confusing <code>operator-&gt;</code>, or equality comparison, and in case it stores a function pointer it does shallow copying.</p>
+
+<p>Second, using literal <code>nullptr</code> in <code>optional</code> would make it impossible to provide some of the natural and expected initialization and assignment semantics for types that themselves are nullable:</p>
+
+<ul>
+<li><code>optional&lt;int*&gt;</code>, </li>
+<li><code>optional&lt;const char*&gt;</code>, </li>
+<li><code>optional&lt;M C::*&gt;</code>, </li>
+<li><code>optional&lt;function&lt;void(int)&gt;&gt;</code>, </li>
+<li><code>optional&lt;NullableInteger&gt;</code>,</li>
+<li><code>optional&lt;nullptr_t&gt;</code>.</li>
+</ul>
+
+<p>Should the following initialization render an engaged or a disengaged optional?</p>
+
+<pre>optional&lt;int*&gt; op = nullptr;</pre>
+
+<p>One could argue that if we want to initialize an engaged optional we should indicate that explicitly: </p>
+
+<pre>optional&lt;int*&gt; op{in_place, nullptr};</pre>
+
+<p>But this argument would not work in general. One of the goals of the design of <code>optional</code> is to allow a seamless "optionalization" of function arguments. That is, given the folowing function signature:</p>
+
+<pre>void fun(T v) {
+  process(v);
+}
+</pre>
+
+<p>It should be possible to change the signature and the implementation to:</p>
+
+<pre>void fun(optional&lt;T&gt; v) {
+  if (v) process(*v);
+  else   doSthElse();
+}
+</pre>
+
+<p>and expect that all the places that call function <code>fun</code> are not affected. But if <code>T</code> happens to be <code>int*</code> and we occasionally pass value <code>nullptr</code> to it, we will silently change the intended behavior of the refactoring: because it will not be the pointer that we null-initialize anymore but a disengaged optional.</p>
+
+<p>Note that this still does not save us from the above problem with refactoring function <code>fun</code> in case where <code>T</code> happens to be <code>optional&lt;U&gt;</code>, but we definately limit the amount of surprises.</p>
+
+<p>In order to avoid similar problems with tag <code>nullopt</code>, instantiating template <code>optional</code> with types <code>nullopt_t</code> and <code>in_place_t</code> is prohibited.</p>
+
+<p>There exist, on the other hand, downsides of introducing a special token in place of <code>nullptr</code>. The number of ways to indicate the 'null-state' for different library components will grow: you will have <code>NULL</code>, <code>nullptr</code>, <code>nullopt</code>. New C++ programmers will ask "which of these should I use now?" What guidelines should be provided? Use only <code>nullptr</code> for pointers? But does it mean that we should use <code>nullopt</code> for <code>std::function</code>? Having only one way of denoting null-state, would make the things easier, even if "ptr" suggests a pointer. </p>
+
+
+<h3><a name="rationale.t_based_none">Why not a tag dependent on <code>T</code>? </a></h3>
+
+
+<p>It has been suggested that instead of 'typeless' <code>nullopt</code> a tag nested in class <code>optional</code> be used instead:</p>
+
+<pre>optional&lt;int&gt; oi = optional&lt;int&gt;::nullopt;
+</pre>
+
+<p>This has several advantages. Namespace <code>std</code> is not polluted with an additional <code>optional</code>-specific name. Also, it resolves certain ambiguities when types like <code>optional&lt;<code>optional&lt;T&gt;</code>&gt;</code> are involved:</p>
+
+<pre>optional&lt;optional&lt;int&gt;&gt; ooi = optional&lt;int&gt;::nullopt;           <em>// engaged</em>
+optional&lt;optional&lt;int&gt;&gt; ooj = optional&lt;optional&lt;int&gt;&gt;::nullopt; <em>// disengaged</em>
+</pre>
+
+<pre>void fun(optional&lt;string&gt;);
+void fun(optional&lt;int&gt;);
+
+fun(optional&lt;string&gt;::nullopt); <em>// unambiguous: a typeless nullopt would not do</em> 
+</pre>
+
+<p>Yet, we choose to propose a typeless tag because we consider the above problems rare and a typeless tag offers a very short notation in other cases:</p>
+
+<pre>optional&lt;string&gt; fun()
+{
+  optional&lt;int&gt; oi = nullopt;  <em>// no ambiguity</em>
+  oi = nullopt;                <em>// no ambiguity</em>
+  <em>// ...</em>
+  return nullopt;              <em>// no ambiguity</em>
+}
+</pre>
+
+<p>If the typeless tag does not work for you, you can always use the following construct, although at the expense of invoking a (possibly elided) move constructor:</p> 
+
+<pre>optional&lt;optional&lt;int&gt;&gt; ooi = optional&lt;int&gt;{};           <em>// engaged</em>
+optional&lt;optional&lt;int&gt;&gt; ooj = optional&lt;optional&lt;int&gt;&gt;{}; <em>// disengaged</em>
+</pre>
+
+<pre>void fun(optional&lt;string&gt;);
+void fun(optional&lt;int&gt;);
+
+fun(optional&lt;string&gt;{}); <em>// unambiguous</em> 
+</pre>
+
+<h3><a name="rationale.access">Accessing the contained value</a></h3>
+
+
+<p>It was chosen to use indirection operator because, along with explicit conversion to <code>bool</code>, it is a very common pattern for accessing a value that might not be there: </p>
+<pre>if (p) use(*p);</pre>
+
+<p>This pattern is used for all sort of pointers (smart or dumb), and it clearly indicates the fact that the value may be missing and that we return a reference rather than a value.  The indirection operator has risen some objections because it may incorrectly imply that <code>optional</code> is a (possibly smart) pointer, and thus provides shallow copy and comparison semantics. All library components so far use indirection operator to return an object that is not part of the pointer's/iterator's value. In contrast, <code>optional</code> indirects to the part of its own state. We do not consider it a problem in the design; it is more like an unprecedented usage of indirection operator.  We believe that the cost of potential confusion is overweighed by the benefit of an easy to grasp and intuitive interface for accessing the contained value. </p>
+
+<p>We do not think that providing an implicit conversion to <code>T</code> would be a good choice. First, it would require different way of checking for the empty state; and second, such implicit conversion is not perfect and still requires other means of accessing the contained value if we want to call a member function on it.</p>
+
+<p>Using the indirection operator for a disengaged object is an undefined behavior. This behavior offers maximum runtime performance. In addition to indirection operator, we provide member function <code>value</code> that returns a reference to to the contained value if one exists or throws an exception (derived from <code>logic_error</code>) otherwise:</p>
+
+<pre>void interact()
+{
+  std::string s;
+  cout &lt;&lt; "enter number ";
+  cin &gt;&gt; s;
+  optional&lt;int&gt; oi = str2int(s);
+  
+  try {
+    process_int(oi.value());
+  }
+  catch(bad_optional_access const&amp;) {
+    cout &lt;&lt; "this was not a number";
+  }
+}</pre>
+
+
+
+<h3><a name="rationale.relops">Relational operators</a></h3>
+
+
+<p>One of the design goals of <code>optional</code> is that objects of type <code>optional&lt;T&gt;</code> should be valid elements in STL containers  and usable with STL algorithms (at least if objects of type <code>T</code> are). Equality comparison is essential for <code>optional&lt;T&gt;</code> to model concept <code>Regular</code>. C++ does not have concepts, but being regular is still essential for the type to be effectively used with STL. Ordering is essential if we want to store optional values in ordered associative containers. A number of ways of including the disengaged state in comparisons have been suggested. The ones proposed, have been crafted such that the axioms of equivalence and strict weak ordering are preserved: disengaged <code>optional&lt;T&gt;</code> is simply treated as an additional and unique value of <code>T</code> equal only to itself; this value is always compared as less than any value of <code>T</code>:</p>
+
+<pre>optional&lt;unsigned&gt; o0{0};
+optional&lt;unsigned&gt; o1{1};
+optional&lt;unsigned&gt; oN{nullopt};
+
+assert (oN &lt; o0);
+assert (o0 &lt; o1);
+assert (!(oN  &lt; oN));
+assert (!(o1 &lt; o1));
+
+assert (oN != o0);
+assert (o0 != o1);
+assert (oN == oN);
+assert (o0 == o0);
+</pre>
+
+<p>Value <code>nullopt</code> could have been as well considered greater than any value of <code>T</code>. The choice is to a great degree arbitrary. We choose to stick to what <code>boost::optional</code> does.
+
+</p><p>Behind the scenes, optional is using utility <code>std::less&lt;T&gt;</code> rather than <code>T::operator&lt;</code>. This is almost the same thing except for one detail. Quoting 20.8.5 [comparisons] paragraph 8, "For templates <code>greater</code>, <code>less</code>, <code>greater_equal</code>, and <code>less_equal</code>, the specializations for any pointer type yield a total order, even if the built-in operators <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code> do not."</p> 
+
+<!--<p>Should <code>optional&lt;T&gt;::operator&gt;</code> be implemented in terms of <code>std::less&lt;T&gt;</code> or <code>std::greater&lt;T&gt;</code>? For sane types noone would tell the difference.</p>-->
+
+<p>Given that both <code>nullopt_t</code> and <code>T</code> are implicitly convertible to <code>optional&lt;T&gt;</code>, this implies the existence and semantics of mixed comparison between <code>optional&lt;T&gt;</code> and <code>T</code>, as well as between <code>optional&lt;T&gt;</code> and <code>nullopt_t</code>:</p>
+
+<pre>assert (oN == nullopt);
+assert (o0 != nullopt);
+assert (oN != 1);
+assert (o1 == 1);
+
+assert (oN &lt; 1);
+assert (o0 &gt; nullopt);
+</pre>
+
+<p>Although it is difficult to imagine any practical use case of ordering relation between <code>optional&lt;T&gt;</code> and <code>nullopt_t</code>, we still provide it for completness's sake</p>
+
+<p>The mixed relational operators, especially these representing order, between <code>optional&lt;T&gt;</code> and <code>T</code> have been accused of being dangerous. In code examples like the following, it may be unclear if the author did not really intend to compare two <code>T</code>'s. </p>
+
+<pre>auto count = get_optional_count();
+if (count &lt; 20) {}                        <em>// or did you mean: *count &lt; 20 ?</em>
+if (count == nullopt || *count &lt; 20) {}   <em>// verbose, but unambiguous</em>
+</pre>
+
+<p>Given that <code>optional&lt;T&gt;</code> is comparable and implicitly constructible from <code>T</code>, the mixed comparison is there already. We would have to artificially create the mixed overloads only for them to cause controlled compilation errors. A consistent approach to prohibiting mixed relational operators would be to also prohibit the convesion from <code>T</code> or to also prohibit homogenous relational operators for <code>optional&lt;T&gt;</code>; we do not want to do either, for other reasons discussed in this proposal. Also, mixed relational operations are available in Boost.Optional and were found useful by the users. Mixed operators come as something natural when we consider the model "<code>T</code> with one additional value".</p>
+
+<p>For completeness sake, we also provide ordering relations between <code>optional&lt;T&gt;</code> and <code>nullopt_t</code>, even though we see no practical use case for them:</p>
+
+<pre>bool test(optional&lt;int&gt; o)
+{
+  assert (o &gt;= nullopt);    <em>// regardless of o's state</em>
+  assert (!(o &lt; nullopt));  <em>// regardless of o's state</em>
+  assert (nullopt &lt;= o);    <em>// regardless of o's state</em> 
+  return (o &gt; nullopt);     <em>// o != nullopt is cleaner</em>
+}</pre>
+
+<p>This is similar to comparing values of type <code>unsigned int</code> with 0:</p>
+
+<pre>bool test(unsigned int i)
+{
+  assert (i &gt;= 0);          <em>// regardless of i's state</em>
+  assert (0 &lt;= i);          <em>// regardless of i's state</em>
+  return (i &gt; 0);           <em>// i != 0 is cleaner</em>
+}</pre>
+
+
+<p>There exist two ways of implementing <code>operator&gt;</code> for optional objects:</p>
+
+<pre>bool operator&gt;(const optional&lt;T&gt;&amp; x, const optional&lt;T&gt;&amp; y)
+{
+  return (!x) ? false : (!y) ? true : greater{}(*x, *y);  <em>// use T::operator&gt;</em>
+}
+
+bool operator&gt;(const optional&lt;T&gt;&amp; x, const optional&lt;T&gt;&amp; y)
+{
+  return y &lt; x;                                 <em>// use optional&lt;T&gt;::operator&lt;</em>
+}
+</pre>
+
+<p>In case <code>T::operator&gt;</code> and <code>T::operator&lt;</code> are defined consistently, both above implementations are equivalent. If the two operators are not consistent, the  choice of implementation makes a difference. For homogenous relational operations (between two <code>optional&lt;T&gt;</code>s), we chose the former specification.  This is consistent with a similar choice for <code>std::tuple</code>. The only downside of this solution would be visible if some type defined the two predicates inconsistently. We have never seen such a case. The only examples of "clever" abusage of relational operators in domain-speciffic languages we are aware of are expression templates. But in this case operators <code>&lt;</code> and <code>&gt;</code> do not return type <code>bool</code> and we cannot imagine, you would use <code>optional</code> for them. On the other hand, there is one small benefit that comes with our proposal: <code>T::operator&gt;</code> may not even be defined in order for <code>optional&lt;T&gt;::operator&lt;</code> to work. </p>
+
+<p>For heterogenous relational operations (between <code>optional&lt;T&gt;</code> and <code>T</code>), we also choose to implement all in terms of <code>std::less</code>. This way we are consistent with the rest of the standard library. This is a change compared to the previous revisions, where mixed relops were implemented in terms of corresponding relational operators of <code>T</code>.</p>
+
+
+
+<h3><a name="rationale.resetting">Resetting the optional value</a></h3>
+
+
+<p>Assigning the value of type <code>T</code> to <code>optional&lt;T&gt;</code> object results in doing two different things based on whether the optional object is engaged or not. If optional object is engaged, the contained value is assigned a new value. If optional object is disengaged, it becomes engaged using <code>T</code>'s copy/move constructor. This behavior is based on a silent assumption that <code>T</code>'s copy/move constructor is copying a value in a similar way to copy/move assignment. A similar logic applies to <code>optional&lt;T&gt;</code>'s copy/move assignment, although the situation here is more complicated because we have two engaged/disengaged states to be considered. This means that <code>optional&lt;T&gt;</code>'s assignment does not work (does not compile) if <code>T</code> is not assignable:</p>
+
+<pre>optional&lt;const int&gt; oi = 1;  <em>// ok</em>
+oi = 2;                      <em>// error</em> 
+oi = oi;                     <em>// error</em> 
+oi = nullopt;                <em>// ok</em>
+</pre>
+
+<p>There is an option to reset the value of optional object without resorting to <code>T</code>'s assignment:</p>
+
+<pre>optional&lt;const int&gt; oj = 1;  <em>// ok</em>
+oj.emplace(2);               <em>// ok</em> 
+</pre>
+
+<p>Function <code>emplace</code> disengages the optional object if it is engaged, and then just engages the object anew by copy-constructing the contained value. It is similar to assignment, except that it is guaranteed not to use <code>T</code>'s assignment and provides only a basic exception safety guarantee. In contrast, assignment may provide a stronger guarantee if <code>T</code>'s assignment does.</p>
+
+<p>To sumarize, this proposal offers three ways of assigning a new contained value to an optional object:</p>
+
+<pre>optional&lt;int&gt; o;
+o = make_optional(1);         <em>// copy/move assignment</em>
+o = 1;                        <em>// assignment from T</em>
+o.emplace(1);                 <em>// emplacement</em> 
+</pre>
+
+<p>The first form of assignment is required to make <code>optional</code> a regular object, useable in STL. We need the second form in order to reflect the fact that <code>optional&lt;T&gt;</code> is a wrapper for <code>T</code> and hence it should behave as <code>T</code> as much as possible. Also, when <code>optional&lt;T&gt;</code> is viewed as <code>T</code> with one additional value, we want the values of <code>T</code> to be directly assignable to <code>optional&lt;T&gt;</code>. In addition, we need the second form to allow the interoperability with function <code>std::tie</code> as shown above. The third option is required to be able to reset an optional non-assignable <code>T</code>.</p>
+
+ 
+<h3><a name="rationale.in_place">Tag <code>in_place</code></a></h3>
+
+<p>This proposal provides an 'in-place' constructor that forwards (perfectly) the arguments provided to <code>optional</code>'s constructor into the constructor of <code>T</code>. In order to trigger this constructor one has to use the tag struct <code>in_place</code>. We need the extra tag to disambiguate certain situations, like calling <code>optional</code>'s default constructor and requesting <code>T</code>'s default construction:</p>
+
+<pre>optional&lt;Big&gt; ob{in_place, "1"}; <em>// calls Big{"1"} in place (no moving)</em>
+optional&lt;Big&gt; oc{in_place};      <em>// calls Big{} in place (no moving)</em>
+optional&lt;Big&gt; od{};             <em>// creates a disengaged optional</em>
+</pre>
+
+<p>We no longer propose name <code>emplace</code> for the tag. We follow the recomendation from LEWG. Name <code>emplace</code> should be reserved in namespace <code>std</code> in case an algorithm with that name needs to be added in the future. Also it might be confusing to see a member function and a tag with the same name?</p>
+
+
+ 
+<h3><a name="rationale.requirements">Requirements on <code>T</code></a></h3>
+
+<p>Class template <code>optional</code> imposes little requirements on <code>T</code>: it has to be either an lvalue reference type, or a complete object type satisfying the requirements of <code>Destructible</code>. It is the particular operations on <code>optional&lt;T&gt;</code> that impose requirements on <code>T</code>: <code>optional&lt;T&gt;</code>'s move constructor requires that <code>T</code> is <code>MoveConstructible</code>, <code>optional&lt;T&gt;</code>'s copy constructor requires that <code>T</code> is <code>CopyConstructible</code>, and so on. This is because <code>optional&lt;T&gt;</code> is a wrapper for <code>T</code>: it should resemble <code>T</code> as much as possible. If <code>T</code> is <code>EqualityComparable</code> then (and only then) we expect <code>optional&lt;T&gt;</code> to be <code>EqualityComparable</code>. </p>
+
+
+
+<h3><a name="rationale.refs">Optional references</a></h3>
+
+
+<p>In this revision, optional references are presented as an auxiliary proposal. The intention is that the Committee should have an option to accept optional values without optional references, if it finds the latter concept inacceptable. Users that in generic contexts require to also store optional lvalue references can achieve this effect, even without direct support for optional references, with a bit of meta-programming. </p>
+
+<pre>template &lt;class T&gt;
+struct generic
+{
+  typedef T type;
+};
+
+template &lt;class U&gt;
+struct generic&lt;U&amp;&gt;
+{
+  typedef std::reference_wrapper&lt;U&gt; type;
+};
+
+template &lt;class T&gt;
+using Generic = typename generic&lt;T&gt;::type;
+
+template &lt;class X&gt;
+void generic_fun()
+{
+  std::optional&lt;Generic&lt;X&gt;&gt; op;
+  <em>// ...</em>
+}
+</pre>
+
+<p>Although the behavior of such "emulated" optional references will be slightly different than that of "normal" optional references.</p> 
+
+
+
+<h3><a name="rationale.noexcept">Exception specifications</a></h3>
+
+
+<p>First draft of this revision required an aggressive usage of conditional <code>noexcept</code> specifications for nearly every, member- or non-member-, function in the interface. For instance equality comparison was to be declared as:</p>
+
+<pre>template &lt;class T&gt;
+  bool operator==(const optional&lt;T&gt;&amp; lhs, const optional&lt;T&gt;&amp; rhs)
+  noexcept(noexcept(*lhs == *rhs));
+</pre>
+
+<p>This was based on one of our goals: that we want <code>optional&lt;T&gt;</code> to be applicable wherever <code>T</code> is applicable in as many situations as reasonably possible. One such situation occurs where no-throw operations of objects of type <code>T</code> are used to implement a strong exception safety guarantee of some operations. We would like objects of type <code>optional&lt;T&gt;</code> to be also useable in such cases. However, we do not propose this aggressive conditional no-throw guarantees at this time in order for the proposed library component to adhere to the current Library guidelines for conditional <code>noexcept</code>: it is currently only used in move constructor, move assignment and <code>swap</code>. One exception to this rule, we think could be made for optional's move constructor and assignment from type <code>T&amp;&amp;</code>, however we still do not propose this at this time in order to avoid controversy.</p>
+
+<p>Constructors and mutating functions that disengage an optional object are required to be <code>noexcept(true)</code>: they only call <code>T</code>'s destructor and impose no precondition on optional object's or contained value's state. The same applies to the observers that check the disengaged/engaged state.</p>
+
+<p>The observers that access the contained value — <code>operator*</code> and <code>operator-&gt;</code> — are not declared as <code>noexcept(true)</code> even though they have no good reason to throw. This is because they impose a precondition that optional object shall be engaged, and as per observations from N3248<sup>[6]</sup>, library vendors may need to use exceptions to test if the implementation has all the necessary precondition-checking code inside. These observer functions are still required not to throw exceptions.</p>
+
+<p>In general, operations on optional objects only throw, when operations delegated to the contained value throw.</p>
+
+
+
+<h3><a name="rationale.constexpr">Making <code>optional</code> a literal type</a></h3>
+
+
+<p>We propose that <code>optional&lt;T&gt;</code> be a literal type for trivially destructible <code>T</code>'s.</p>
+
+<pre>constexpr optional&lt;int&gt; oi{5};
+static_assert(oi, "");            <em>// ok</em>
+static_assert(oi != nullopt, ""); <em>// ok</em>
+static_assert(oi == oi, "");      <em>// ok</em>
+int array[*oi];                   <em>// ok: array of size 5 </em>
+</pre>
+
+<p>Making <code>optional&lt;T&gt;</code> a literal-type in general is impossible: the destructor cannot be trivial because it has to execute an operation that can be conceptually described as:</p>
+
+<pre>~optional() {
+  if (is_engaged()) destroy_contained_value();
+}
+</pre>
+
+<p>It is still possible to make the destructor trivial for <code>T</code>'s which provide a trivial destructor themselves, and we know an efficient implementation of such <code>optional&lt;T&gt;</code> with compile-time interface — except for copy constructor and move constructor — is possible. Therefore we propose that for trivially destructible <code>T</code>'s all <code>optional&lt;T&gt;</code>'s constructors, except for move and copy constructors, as well as observer functions are <code>constexpr</code>. The sketch of reference implementation is provided in this proposal.</p> 
+
+<p>We need to make a similar exception for <code>operator-&gt;</code> for types with overloaded <code>operator&amp;</code>. The common pattern in the Library is to use function <code>addressof</code> to avoid the surprise of overloaded <code>operator&amp;</code>. However, we know of no way to implement <code>constexpr</code> version of function template <code>addressof</code>. The best approach we can take is to require that for normal types the non-overloaded (and <code>constexpr</code>) <code>operator&amp;</code> is used to take the address of the contained value, and for the tricky types, implementations can use the normal (non-<code>constexpr</code>) <code>addressof</code>. Similar reasoning applies to operations on optional references in the auxiliary proposal below.</p>
+
+
+
+<h3><a name="rationale.moved_from">Moved-from state</a></h3>
+
+<p>When a disengaged optional object is moved from (i.e., when it is the source object of move constructor or move assignment) its state does not change. When an engaged object is moved from, we move the contained value, but leave the optional object engaged. A moved-from contained value is still valid (although possibly not specified), so it is fine to consider such optional object engaged. An alternative approach would be to destroy the contained value and make the moved-from optional object disengaged. However, we do not propose this for performance reasons.</p>
+
+<p>In contexts, like returning by value, where you need to call the destructor the second after the move, it does not matter, but in cases where you request the move explicitly and intend to assign a new value in the next step, and if <code>T</code> does not provide an efficient move, the chosen approach saves an unnecessary destructor and constructor call:</p>
+
+<pre>optional&lt;array&lt;Big, 1000&gt;&gt; oo = ... <em>// array doesn't have efficient move</em>
+op = std::move(oo);
+oo = std::move(tmp);
+</pre>
+
+<p>The following is an even more compelling reason. In this proposal <code>std::optional&lt;int&gt;</code> is allowed to be implemented as a <code>TriviallyCopyable</code> type. Therefore, the copy constructor of type <code>std::array&lt;std::optional&lt;int&gt;, 1000&gt;</code> can be implemented using <code>memcpy</code>. With the additional requirement that <code>optional</code>'s move constructor should not be trivial, we would be preventing the described optimization. </p>
+
+<p>The fact that the moved-from optional is not disengaged may look "uncomfortable" at first, but this is an invalid expectation. The requirements of library components expressed in 17.6.5.15 (moved-from state of library types) only require that moved-from objects are in a valid but unspecified state. We do not need to guarantee anything above this minimum.</p>
+
+
+
+<h3><a name="rationale.reset_syntax">The <code>op = {}</code> syntax</a></h3>
+
+
+<p>We put the extra requirements in the standardese to make sure that the following syntax works for resetting the optional:</p>
+
+<code>op = {};</code>
+
+<p>We consider that this will become a common idiom for resetting (putting into default-constructed state) values in C++. While you get that syntax for free for POD types, in <code>optional</code> we have to take extra care to enable it; this is because <code>optional</code> provides three assignment operators: copy/move assignment, assignment from <code>T</code> and from <code>nullopt_t</code>. If we just provided the "intuitive" declaration of assignment from <code>const T&amp;</code> and <code>T&amp;&amp;</code>, the expression above would become ambiguous. The expression above is processed as:</p>
+
+<code>op = DEDUCED{};</code>
+
+<p>where <code>DEDUCED</code> needs to be deduced from all available overloads. We would have two candidates: move assignment and assignemnt from <code>T&amp;&amp;</code>, which would cause an ambiguity. Therefore, we require that the assignment from <code>T&amp;&amp;</code> is declared in a more convoluted way — as a template:</p>
+
+<code>template &lt;class U&gt; optional&amp; optional&lt;T&gt;::operator=(U&amp;&amp;);<br>
+<em>// enable if decay&lt;U&gt; == T</em></code>
+
+<p>The additional requirement that <code>decay&lt;U&gt; == T</code> says that the only valid instantiations from this template are these for <code>const T&amp;</code> and <code>T&amp;&amp;</code> (and some other less relevant variations of references to <code>T</code>). But it is still a template, and templates do not participate in the resolution of type <code>DEDUCED</code>.</p>
+
+<p>For the same reason, we require that tag <code>nullopt_t</code> is not DefaultConstructible. Otherwise, because <code>optional</code> provides an assignment from <code>nullopt_t</code>, <code>DEDUCED</code> might also have been deduced as <code>nullopt_t</code>.</p>
+
+<p><strong>Note</strong> that it is not the only way to disengage an optional object. You can also use:</p>
+
+<pre>op = std::nullopt;</pre>
+
+
+
+<h3><a name="rationale.swap_reqs">Requirements for <code>swap</code></a></h3>
+
+
+<p>For function <code>swap</code>, we require that <code>T</code> is "swappable for lvalues and <code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code>". Similarly, we require that it is declared with the following excption specification:</p>
+
+<pre>noexcept(is_nothrow_move_constructible&lt;T&gt;::value &amp;&amp; noexcept(swap(declval&lt;T&amp;&gt;(), declval&lt;T&amp;&gt;())))</pre>
+
+<p>You can see that we require things of the move constructor but not of move assignment. This is the consequence of the behaviour of function <code>swap</code>, which does three different things based on the engagement states of the two optional objects in question. Conceptually, the behaviour could be described as:</p>
+
+<pre>void swap(optional&lt;T&gt;&amp; lhs, optional&lt;T&gt;&amp; rhs)
+{
+  if ( lhs &amp;&amp;  rhs) swap(*lhs, *rhs);
+  if (!lhs &amp;&amp;  rhs) move-construct in lhs, destroy in rhs;
+  if ( lhs &amp;&amp; !rhs) move-construct in rhs, destroy in lhs;
+  if (!lhs &amp;&amp; !rhs) <em>/* no-op */</em>;
+}</pre>
+
+<p>No move-assignment is involved in swap. This is part of the function's contract.</p>
+
+<h3><a name="rationale.io">IO operations</a></h3>
+
+
+<p>The proposed interface for optional values does not contain IO operations: <code>operator&lt;&lt;</code> and <code>operator&gt;&gt;</code>. While we believe that they would be a useful addition to the interface of optional objects, we also observe that there are some technical obstacles in providing them, and we choose not to propose them at this time. Library components like containers, pairs, tuples face the same issue. At present IO operations are not provided for these types. Our preference for <code>optional</code> is to provide an IO solution compatible with this for containers, pairs and tuples, therefore at this point we refrain from proposing a solution for <code>optional</code> alone.</p>
+
+
+
+<h3><a name="rationale.value_or">Function <code>value_or</code></a></h3>
+
+
+<p>This function template returns a value stored by the <code>optional</code> object if it is engaged, and if not, it falls back to the default value specified in the second argument. It used to be called <code>get_value_or</code> in the previous revisions, but we decided to rename it, as a consequence of disscussions, so that it is similar to another new member function <code>value</code>. This method for specifying default values on the fly rather than tying the default values to the type is based on the observation that different contexts or usages require different default values for the same type. For instance the default value for <code>int</code> can be 0 or -1. The callee might not know what value the caller considers special, so it returns the lack of the requested value explicitly. The caller may be better suited to make the choice what special value to use.</p>
+
+<pre>optional&lt;int&gt; queryDB(std::string);
+void setPieceCount(int);
+void setMaxCount(int);
+
+setPieceCount( queryDB("select piece_count from ...").value_or(0) );
+setMaxCount( queryDB("select max_count from ...").value_or(numeric_limits&lt;int&gt;::max()) );
+</pre>
+
+<p>The decision to provide this function is controversial itself. As pointed out by Robert Ramey, the goal of the <code>optional</code> is to make the lack of the value explicit. Its syntax forces two control paths; therefore we will typically see an <code>if</code>-statement (or similar branching instruction) wherever <code>optional</code> is used. This is considered an improvement in correctness. On the other hand, using the default value appears to conflict with the above idea. One other argument against providing it is that in many cases you can use a ternary conditional operator instead:</p>
+
+<pre>auto&amp;&amp; cnt = queryDB("select piece_count from ...");
+setPieceCount(cnt ? *cnt : 0);
+
+auto&amp;&amp; max = queryDB("select max_count from ...");
+setMaxCount(max ? std::move(*max) : numeric_limits&lt;int&gt;::max());
+</pre>
+
+<p>However, in case optional objects are returned by value and immediately consumed, the ternary operator syntax requires introducing an lvalue. This requires more typing and explicit <code>move</code>. This in turn makes the code less safe because a moved-from lvalue is still accessible and open for inadvertent misuse.</p>
+
+<p>There are reasons to make it a free-standing function. (1) It can be implemented by using only the public interface of <code>optional</code>. (2) This function template could be equally well be applied to any type satisfying some requirements <code>NullableProxy</code>. In this proposal, function <code>value_or</code> is defined as a member function and only for <code>optional</code>s. Making a premature generalization would risk standardizing a function with suboptimal performance/utility. While we know what detailed semantics (e.g., the return type) <code>value_or</code> should have for <code>optional</code>, we cannot claim to know the ideal semantics for a generic function. Also, it is not clear to us if this convenience function is equally useful for pointers, as it is for optional objects. By making <code>value_or</code> a member function we leave the room for this name in namespace <code>std</code> for a possible future generalization.
+</p>
+
+<p>The second argument in the function template's signature is not <code>T</code> but any type convertible to <code>T</code>:</p>
+
+<pre>template &lt;class T, class V&gt; 
+  typename decay&lt;T&gt;::type optional&lt;T&gt;::value_or(V&amp;&amp; <var>v</var>) const&amp;;
+template &lt;class T, class V&gt; 
+  typename decay&lt;T&gt;::type optional&lt;T&gt;::value_or(V&amp;&amp; <var>v</var>) &amp;&amp;;
+</pre>
+
+<p>This allows for a certain run-time optimization. In the following example:</p>
+
+<pre>optional&lt;string&gt; op{"cat"};
+string ans = op.value_or("dog");
+</pre>
+
+<p>Because the optional object is engaged, we do not need the fallback value and therefore to convert the string literal <code>"dog"</code> into type <code>string</code>.</p>
+
+<p>It has been argued that the function should return by constant reference rather than value, which would avoid copy overhead in certain situations:</p>
+
+<pre>void observe(const X&amp; x);
+
+optional&lt;X&gt; ox { <em>/* ... */</em> };
+observe( ox.value_or(X{args}) );    <em>// unnecessary copy</em>
+</pre>
+
+<p>However, the benefit of the function <code>value_or</code> is only visible when the optional object is provided as a temporary (without the name); otherwise, a ternary operator is equally useful:</p>
+
+<pre>optional&lt;X&gt; ox { <em>/* ... */</em> };
+observe(ox ? *ok : X{args});            <em>// no copy</em>
+</pre>
+
+<p>Also, returning by reference would be likely to render a dangling reference, in case the optional object is disengaged, because the second argument is typically a temporary:</p>
+
+<pre>optional&lt;X&gt; ox {nullopt};
+auto&amp;&amp; x = ox.value_or(X{args});
+cout &lt;&lt; x;                             <em> // x is dangling!</em>
+</pre>
+
+<p>There is also one practical problem with returning a reference. The function takes two arguments by reference: the optional object and the default value. It can happen that one is deduced as lvalue reference and the other as rvalue reference. In such case we would not know what kind of reference to return. Returning lvalue reference might prevent move optimization; returning an rvalue reference might cause an unsafe move from lvalue. By returning by value we avoid these problems by requiring one unnecessary move in some cases.</p>
+
+<p>We also do not want to return a constant lvalue reference because that would prevent a copy elision in cases where optional object is returned by value.</p>
+
+<p>It has also been suggested (by Luc Danton) that function <code>optional&lt;T&gt;::value_or&lt;V&gt;</code> should return type <code>decay&lt;common_type&lt;T, V&gt;::type&gt;::type</code> rather than <code>decay&lt;T&gt;::type</code>. This would avoid certain problems, such as loss of accuracy on arithmetic types:</p>
+
+<pre><em>// not proposed</em>
+std::optional&lt;int&gt; op = <em>/* ... */</em>;
+long gl = <em>/* ... */</em>;
+
+auto lossless = op.value_or(gl);   <em>// lossless deduced as long rather than int</em>
+</pre>
+
+<p>However, we did not find many practical use cases for this extension, so we do not propose it at this time.</p>
+
+<p>Together with function <code>value</code>, <code>value_or</code> makes a set of similarly called functions for accessing the contained value that do not cause an undefined behavior when invoked on a disengaged optional (at the expense of runtime overhead). They differ though, in the return type: one returns a value, the other a reference.</p>
+
+<p>One other similar convenience function has been suggested. Sometimes the default value is not given, and computing it takes some time. We only want to compute it, when we know the optional object is disengaged:</p>
+
+<pre>optional&lt;int&gt; oi = <em>/* ... */</em>;
+
+if (oi) {
+  use(*oi);
+}
+else {
+  int i = painfully_compute_default();
+  use(i);
+}
+</pre>
+
+<p>The solution to that situation would be another convenience function which rather than taking a default value takes a callable object that is capable of computing a default value if needed:</p>
+
+<pre>use( oi.value_or_call(&amp;painfully_compute_default) );       
+<em>// or</em>
+use( oi.value_or_call([&amp;]{return painfully_compute_default();} );
+</pre>
+
+<p>We do not propose this, as we prefer to standardize the existing practice. Also, it is not clear how often the above situations may occur, and the tool prove useful. </p>
+
+
+
+<h3><a name="rationale.make_optional">Function <code>make_optional</code></a></h3>
+
+
+<p>We also propose a helper function <code>make_optional</code>. Its semantics is closer to that of <code>make_pair</code> or <code>make_tuple</code> than that of <code>make_shared</code>. You can use it in order for the type of the optional to be deduced:</p>
+
+<pre>int i = 1;
+auto oi = make_optional(i);          <em>// decltype(oi) == optional&lt;int&gt;</em>
+</pre>
+
+<p>This may occasionally be useful when you need to pick the right overload and not type the type of the optional by hand: </p>
+
+<pre>void fun(optional&lt;complex&lt;double&gt;&gt;);
+void fun(Current);                   <em>// complex is convertible to Current</em>
+
+complex&lt;double&gt; c{0.0, 0.1};
+fun(c);                              <em>// ambiguous</em>
+fun({c});                            <em>// ambiguous</em>
+fun(make_optional(c));               <em>// picks first overload</em>
+</pre>
+
+<p>This is not very useful in return statements, as long as the converting constructor from <code>T</code> is implicit, because you can always use the brace syntax:</p>
+
+<pre>optional&lt;complex&lt;double&gt;&gt; findC()
+{
+  complex&lt;double&gt; c{0.0, 0.1};
+  return {c};
+}
+</pre>
+
+<p><code>make_shared</code>-like function does not appear to be useful at all: it is no different than manually creating a temporary optional object:</p>
+
+<pre><em>// not proposed</em>
+fun( make_optional&lt;Rational&gt;(1, 2) );
+fun( optional&lt;Rational&gt;{1, 2} );     <em>// same as above</em>
+</pre>
+
+<p>It would also not be a good alternative for tagged placement constructor, because using it would require type <code>T</code> to be <code>MoveConstructible</code>:</p>
+
+<pre><em>// not proposed</em>
+auto og = make_optional&lt;Guard&gt;("arg1"); <em>// ERROR: Guard is not MoveConstructible</em>
+</pre>
+
+<p>Such solution works for <code>shared_ptr</code> only because its copy constructor is shallow. One useful variant of <code>shared_ptr</code>-like <code>make_optional</code> would be a function that either creates an engaged or a disengaged optional based on some boolean condition:</p>
+
+<pre><em>// not proposed</em>
+return make_optional_if&lt;Rational&gt;(good(i) &amp;&amp; not_bad(j), i, j);
+
+<em>// same as:</em>
+if (good(i) &amp;&amp; not_bad(j)) {
+  return {i, j};
+}
+else {
+  return nullopt;
+}
+
+<em>// same as:</em>
+optional&lt;Rational&gt; or = nullopt;
+if (good(i) &amp;&amp; not_bad(j)) or.emplace(i, j);
+return or; <em>// move-construct on return</em>
+</pre>
+
+<p>Since this use case is rare, and the function call not that elegant, and a two-liner alternative exists, we do not propose it.</p>
+
+
+
+<h3><a name="rationale.header">Header <code>&lt;utility&gt;</code> or <code>&lt;optional&gt;</code>?</a></h3>
+
+
+<p>Should <code>optional</code> be packed into header file <code>&lt;utility&gt;</code> or does it deserve its own header? The answer to this question is arbitrary. To great extent (where we believed it made sense) we try to follow what <code>tuple</code> does. The latter has its own header. Optional is pretty much a "stand-alone" library with vast usage. Also, we do not want to overload <code>&lt;utility&gt;</code> too much. There is no problem, on the other hand, with putting <code>optional</code> to <code>&lt;utility&gt;</code>, if this is the feedback from LWG.</p>
+
+
+
+<h3><a name="rationale.initializer_list">Handling <code>initializer_list</code></a></h3>
+
+<p>Another feature worth considering is a "sequence constructor" (one that takes <code>initializer_list</code> as its argument). It would be enabled (in <code>enable_if</code> sense) only for these <code>T</code>s that themself provide a sequence constructor. This would be useful to fully support two features we already mentioned above (but chose not to propose).</p>
+
+<p>First, our goal of "copy initialization forwarding" for <code>optional</code> also needs to address the following usages of <code>initializer_list</code>:
+</p>
+
+<pre>vector&lt;int&gt; v = {1, 2, 4, 8};
+optional&lt;vector&lt;int&gt;&gt; ov = {1, 2, 4, 8};
+
+assert (v == *ov);
+</pre>
+
+<p>This is not only a syntactical convenience. It also avoids subtle bugs. When perfect forwarding constructor is implemented naively with one variadic constructor, optional vector initialization may render surprising result:</p>
+
+<pre>optional&lt;vector&lt;int&gt;&gt; ov = {3, 1};
+
+assert (*ov == vector{3, 1});    // FAILS!
+assert (*ov == vector{1, 1, 1}); // TRUE!
+</pre>
+
+<p>However this sequence constructor feature is incompatible with another one: default constructor creating a disengaged optional. This is because, as outlined in the former example, initializer <code>{}</code>, that looks like 0-element list, is in fact interpreted as the request for value-initialization (default constructor call). This may hit programmers that use initializer list in "generic" context:</p>
+
+<pre>template &lt;class ...A&gt; <em>// enable_if: every A is int</em>
+void fwd(const A&amp;&amp;... a)
+{
+  optional&lt;vector&lt;int&gt;&gt; o = {a...};
+  assert (bool(o)); <em>// not true for empty a</em>
+}
+</pre>
+
+<p>If this feature were to be added, we would need to provide an assignment from initializer list and variadic 'emplacement' constructor with the first forwarded argument being <code>initializer_list</code>:</p>
+
+<pre>ov = {1, 2, 4, 8};
+
+allocator&lt;int&gt; a;
+optional&lt;vector&lt;int&gt;&gt; ou { in_place, {1, 2, 4, 8}, a };
+
+assert (ou == ov);
+</pre>
+
+
+<p>Since we are not proposing neither perfect forwarding constructor, nor the "copy initialization forwarding", we are also not proposing the sequence constructor. However, in this proposal, the following constructs work:</p>
+
+<pre>optional&lt;vector&lt;int&gt;&gt; ov{in_place, {3, 1}};
+assert (*ov == vector{3, 1});
+
+ov.emplace({3, 1});
+assert (*ov == vector{3, 1});
+</pre>
+
+
+<h3><a name="rationale.optional_optional"><code>optional&lt;optional&lt;T&gt;&gt;</code></a></h3>
+
+
+<p>The necessity to create a "double" optional explicitly does not occur often. Such type may appear though in generic contexts where we create <code>optional&lt;V&gt;</code> and <code>V</code> only happens to be <code>optional&lt;T&gt;</code>. Some special behavior to be observed in this situation is the following. When copy-initializing with <code>nullopt</code>, the "outermost" optional is initialized to disengaged state. Thus, changing function argument from <code>optional&lt;T&gt;</code> to <code>optional&lt;optional&lt;T&gt;&gt;</code> will silently break the code in places where the argument passed to function happens to be of type <code>nullopt_t</code>:</p>
+
+<pre><em>// before change</em>
+void fun(optional&lt;T&gt; v) {
+  process(v);
+}
+
+fun(nullopt); <em>// process() called</em>
+
+<em>// after change</em>
+void fun(optional&lt;optional&lt;T&gt;&gt; v) {
+  if (v) process(*v);
+  else   doSthElse();
+}
+
+fun(nullopt); <em>// process() not called!</em>
+</pre>
+
+<p>This issue would not arise if <code>nullopt</code> were <code>T</code>-specific:</p> 
+
+<pre>fun(optional&lt;T&gt;::nullopt);            <em>// process() called</em>
+fun(optional&lt;optional&lt;T&gt;&gt;::nullopt);  <em>// process() not called</em>
+</pre>
+
+
+<p>Since <code>T</code>-dependent <code>nullopt</code> is not proposed, in order to create an engaged optional containing a disengaged optional, one needs to use one of the following constructs:</p>
+
+<pre>optional&lt;optional&lt;T&gt;&gt; ot {in_place};
+optional&lt;optional&lt;T&gt;&gt; ou {in_place, nullopt};
+optional&lt;optional&lt;T&gt;&gt; ov {optional&lt;T&gt;{}};
+</pre>
+
+<p>Also note that <code>make_optional</code> will create a "double" optional when called with optional argument:</p>
+
+<pre>optional&lt;int&gt; oi;
+auto ooi = make_optional(oi);
+static_assert( is_same&lt;optional&lt;optional&lt;int&gt;&gt;, decltype(ooi)&gt;::value, "");
+</pre>
+
+
+
+
+<h2><a name="open_questions">Open questions</a></h2>
+
+<h3><a name="open_questions.allocator">Allocator support</a></h3>
+
+<p>Optional does not allocate memory. So it can do without allocators. However, it can be useful in compound types like:</p>
+
+<pre>typedef vector&lt; optional&lt;vector&lt;int, MyAlloc&gt;&gt;, MyAlloc&gt;; MyVec;
+MyVec v{ v2, MyAlloc{} };</pre>
+
+<p>One could expect that the allocator argument is forwarded in this constructor call to the nested vectors that use the same allocator. Allocator support would enable this. <code>std::tuple</code> offers this functionality.</p>
+
+
+
+
+<h2><a name="wording">Proposed wording</a></h2>
+
+
+
+<p>After subclause 17.3.10 ([defns.default.behavior.func]), insert a new subclause. (Subclause [defns.handler] becomes 17.3.12.)</p>
+
+<blockquote class="stdins">
+<h4><a name="defns.direct-non-list-init">17.3.11 <span style="float:right">[defns.direct-non-list-init]</span></a></h4>
+
+<p><strong>dierect-non-list-initialization</strong></p><p>
+
+</p><p>A direct-initialization that is not list-initialization.</p>
+
+</blockquote>
+
+<p>Add new header in Table 14 (C++ library headers).</p>
+
+<blockquote class="std">
+<table>
+<caption>Table 14 — C++ library headers</caption>
+<tbody>
+<tr>
+<td><code>&lt;algorithm&gt;</code></td> <td><code>&lt;fstream&gt;</code></td> <td><code>&lt;list&gt;</code></td> <td><code>&lt;ratio&gt;</code></td> <td><code>&lt;tuple&gt;</code></td>
+
+</tr>
+<tr>
+<td><code>&lt;array&gt;</code></td> <td><code>&lt;functional&gt;</code></td> <td><code>&lt;locale&gt;</code></td> <td><code>&lt;regex&gt;</code></td> <td><code>&lt;typeindex&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;atomic&gt;</code></td> <td><code>&lt;future&gt;</code></td> <td><code>&lt;map&gt;</code></td> <td><code>&lt;set&gt;</code></td> <td><code>&lt;typeinfo&gt;</code></td>
+
+</tr>
+<tr>
+<td><code>&lt;bitset&gt;</code></td> <td><code>&lt;initializer_list&gt;</code></td> <td><code>&lt;memory&gt;</code></td> <td><code>&lt;sstream&gt;</code></td> <td><code>&lt;type_traits&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;chrono&gt;</code></td> <td><code>&lt;iomanip&gt;</code></td> <td><code>&lt;mutex&gt;</code></td> <td><code>&lt;stack&gt;</code></td> <td><code>&lt;unordered_map&gt;</code></td>
+
+</tr>
+<tr>
+<td><code>&lt;codecvt&gt;</code></td> <td><code>&lt;ios&gt;</code></td> <td><code>&lt;new&gt;</code></td> <td><code>&lt;stdexcept&gt;</code></td> <td><code>&lt;unordered_set&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;complex&gt;</code></td> <td><code>&lt;iosfwd&gt;</code></td> <td><code>&lt;numeric&gt;</code></td> <td><code>&lt;streambuf&gt;</code></td> <td><code>&lt;utility&gt;</code></td>
+
+</tr>
+<tr>
+<td><code>&lt;condition_variable&gt;</code></td> <td><code>&lt;iostream&gt;</code></td> <td><ins><code>&lt;optional&gt;</code></ins></td> <td><code>&lt;string&gt;</code></td> <td><code>&lt;valarray&gt;</code></td>
+</tr>
+<tr>
+<td><code>&lt;dequeue&gt;</code></td> <td><code>&lt;istream&gt;</code></td> <td><code>&lt;ostream&gt;</code></td> <td><code>&lt;strstream&gt;</code></td> <td><code>&lt;vector&gt;</code></td>
+
+</tr>
+<tr>
+<td><code>&lt;exception&gt;</code></td> <td><code>&lt;iterator&gt;</code></td> <td><code>&lt;queue&gt;</code></td> <td><code>&lt;system_error&gt;</code></td> <td><code> </code></td>
+</tr>
+<tr>
+<td><code>&lt;forward_list&gt;</code></td> <td><code>&lt;limits&gt;</code></td> <td><code>&lt;random&gt;</code></td> <td><code>&lt;thread&gt;</code></td> <td><code> </code></td>
+
+</tr>
+</tbody>
+</table>
+</blockquote>
+
+
+<p>After chapter 20.4 Tuples [tuple], insert a new paragraph. (Chapter [template.bitset] (Class template <code>bitset</code>) becomes 20.6.)</p>
+  
+ <blockquote class="std"> 
+<h3><a name="optional">20.5 Optional objects <span style="float:right">[optional]</span></a></h3>
+
+
+<h4><a name="optional.general">20.5.1 In general <span style="float:right">[optional.general]</span></a></h4>
+
+<p>This subclause describes class template <code>optional</code> that represents <em>optional objects</em>. An <em>optional object for object types</em> is an object that contains the storage for another object and manages the lifetime of this contained object, if any. The contained object may be initialized after the optional object has been initialized, and may be destroyed before the optional object has been destroyed. The initialization state of the contained object is tracked by the optional object.</p>
+
+  
+<h4><a name="optional.synop">20.5.2 Header <kbd>&lt;optional&gt;</kbd> synopsis <span style="float:right">[optional.synop]</span></a></h4>
+
+<pre>namespace std {
+  // <em><a href="#optional.object">20.5.4</a>, <code>optional</code> for object types</em>
+  template &lt;class T&gt; class optional;
+
+  // <em><a href="#optional.inplace">20.5.5</a>, In-place construction</em>
+  struct in_place_t{};
+  constexpr in_place_t in_place{};
+
+  // <em><a href="#optional.nullopt">20.5.6</a>, Disengaged state indicator</em>
+  struct nullopt_t{<em>see below</em>};
+  constexpr nullopt_t nullopt(<em>unspecified</em>);
+  
+  // <em><a href="#optional.bad_optional_access">20.5.7</a>, class bad_optional_access</em>
+  class bad_optional_access;
+
+  // <em><a href="#optional.relops">20.5.8</a>, Relational operators</em>
+  template &lt;class T&gt;
+    constexpr bool operator==(const optional&lt;T&gt;&amp;, const optional&lt;T&gt;&amp;);
+  template &lt;class T&gt;
+    constexpr bool operator&lt;(const optional&lt;T&gt;&amp;, const optional&lt;T&gt;&amp;);
+
+  // <em><a href="#optional.nullops">20.5.9</a>, Comparison with <code>nullopt</code></em>
+  template &lt;class T&gt; constexpr bool operator==(const optional&lt;T&gt;&amp;, nullopt_t) noexcept;
+  template &lt;class T&gt; constexpr bool operator==(nullopt_t, const optional&lt;T&gt;&amp;) noexcept;
+  template &lt;class T&gt; constexpr bool operator&lt;(const optional&lt;T&gt;&amp;, nullopt_t) noexcept;
+  template &lt;class T&gt; constexpr bool operator&lt;(nullopt_t, const optional&lt;T&gt;&amp;) noexcept;
+
+  // <em><a href="#optional.comp_with_t">20.5.10</a>, Comparison with T</em>
+  template &lt;class T&gt; constexpr bool operator==(const optional&lt;T&gt;&amp;, const T&amp;);
+  template &lt;class T&gt; constexpr bool operator==(const T&amp;, const optional&lt;T&gt;&amp;);
+  template &lt;class T&gt; constexpr bool operator&lt;(const optional&lt;T&gt;&amp;, const T&amp;);
+  template &lt;class T&gt; constexpr bool operator&lt;(const T&amp;, const optional&lt;T&gt;&amp;);
+
+  // <em><a href="#optional.specalg">20.5.11</a>, Specialized algorithms</em>
+  template &lt;class T&gt; void swap(optional&lt;T&gt;&amp;, optional&lt;T&gt;&amp;) noexcept(<em>see below</em>);<!--
+  template &lt;class T, class V&gt; 
+    constexpr typename decay&lt;T&gt;::type get_value_or(const optional&lt;T&gt;&amp;, V&amp;&amp;);
+  template &lt;class T, class V&gt; 
+    constexpr typename decay&lt;T&gt;::type get_value_or(optional&lt;T&gt;&amp;&amp;, V&amp;&amp;);-->
+  template &lt;class T&gt; constexpr optional&lt;<em>see below</em>&gt; make_optional(T&amp;&amp;);
+
+  // <em><a href="#optional.hash">20.5.12</a>, hash support</em>
+  template &lt;class T&gt; struct hash;
+  template &lt;class T&gt; struct hash&lt;optional&lt;T&gt;&gt;;
+} <em>// namespace std</em>
+</pre>
+  
+  <p>A program that necessitates the instantiation of template <code>optional</code> for a reference type, or for possibly cv-qualified types <code>in_place_t</code> or <code>nullopt_t</code> is ill-formed.</p>
+
+<h4><a name="optional.defs">20.5.3 Definitions <span style="float:right">[optional.defs]</span></a></h4>
+ 
+  <p>An instance of <code>optional&lt;T&gt;</code> is said to be <em>disengaged</em> if it has been default constructed, constructed with or assigned with a value of type <code>nullopt_t</code>, constructed with or assigned with a disengaged optional object of type <code>optional&lt;T&gt;</code>.
+  </p>
+
+  <p>An instance of <code>optional&lt;T&gt;</code> is said to be <em>engaged</em> if it is not disengaged. 
+  </p>
+  
+  <!--
+  <p>An instance of <code>optional&lt;T&gt;</code> is said to be <em>disengaged</em> if it has been default constructed, constructed or assigned with a value of type <code>nullopt_t</code>, constructed or assigned with a disengaged optional object of type <code>optional&lt;U&gt;</code>, with <code>U</code> being equal or not to <code>T</code>.
+  </p>
+  
+  <p>An instance of <code>optional&lt;T&gt;</code> is said to be <em>engaged</em> if it has 
+  been modified with member function <code>emplace</code>, constructed with a value of type <code>U</code>, assigned a value of type <code>U</code>, copy-constructed from or assigned with an engaged optional object of type <code>optional&lt;U&gt;</code>, where <code>U</code> is same as or convertible to <code>T</code>. 
+  </p>
+  -->
+
+  
+<h4><a name="optional.object">20.5.4 <code>optional</code> for object types <span style="float:right">[optional.object]</span></a></h4>
+
+  
+<pre>namespace std {
+
+  template &lt;class T&gt;
+  class optional
+  {
+  public:
+    typedef T value_type;
+
+    // <em><a href="#optional.object.ctor">20.5.4.1</a>, constructors</em>
+    constexpr optional() noexcept;
+    constexpr optional(nullopt_t) noexcept;
+    optional(const optional&amp;);
+    optional(optional&amp;&amp;) noexcept(<em>see below</em>);
+    constexpr optional(const T&amp;);
+    constexpr optional(T&amp;&amp;);<!--
+    template &lt;class U&gt; explicit optional(U&amp;&amp;);
+    template &lt;class U&gt; optional(U&amp;&amp;);
+    template &lt;class U&gt; explicit optional(const optional&lt;U&gt;&amp;);
+    template &lt;class U&gt; optional(const optional&lt;U&gt;&amp;);
+    template &lt;class U&gt; explicit optional(optional&lt;U&gt;&amp;&amp;);
+    template &lt;class U&gt; optional(optional&lt;U&gt;&amp;&amp;);
+    template &lt;class U&gt; explicit optional(initializer_list&lt;U&gt;);
+    template &lt;class U&gt; optional(initializer_list&lt;U&gt;);-->
+    template &lt;class... Args&gt; constexpr explicit optional(in_place_t, Args&amp;&amp;...);
+    template &lt;class U, class... Args&gt;
+      constexpr explicit optional(in_place_t, initializer_list&lt;U&gt;, Args&amp;&amp;...);
+
+    // <em><a href="#optional.object.dtor">20.5.4.2</a>, destructor</em>
+    ~optional();
+
+    // <em><a href="#optional.object.assign">20.5.4.3</a>, assignment</em>
+    optional&amp; operator=(nullopt_t) noexcept;<!--
+    optional&amp; operator=(const T&amp;);
+    optional&amp; operator=(T&amp;&amp;);-->
+    optional&amp; operator=(const optional&amp;);
+    optional&amp; operator=(optional&amp;&amp;) noexcept(<em>see below</em>);
+    template &lt;class U&gt; optional&amp; operator=(U&amp;&amp;);<!--
+    template &lt;class U&gt; optional&amp; operator=(const optional&lt;U&gt;&amp;);
+    template &lt;class U&gt; optional&amp; operator=(optional&lt;U&gt;&amp;&amp;);
+    template &lt;class U&gt; optional&amp; operator=(initializer_list&lt;U&gt;);-->
+    template &lt;class... Args&gt; void emplace(Args&amp;&amp;...);
+    template &lt;class U, class... Args&gt;
+      void emplace(initializer_list&lt;U&gt;, Args&amp;&amp;...);
+
+    // <em><a href="#optional.object.swap">20.5.4.4</a>, swap</em>
+    void swap(optional&amp;) noexcept(<em>see below</em>);
+
+    // <em><a href="#optional.object.observe">20.5.4.5</a>, observers</em>
+    constexpr T const* operator -&gt;() const;
+    T* operator -&gt;();
+    constexpr T const&amp; operator *() const;
+    T&amp; operator *();
+    constexpr explicit operator bool() const noexcept;
+    constexpr T const&amp; value() const;
+    T&amp; value();
+    template &lt;class U&gt; constexpr T value_or(U&amp;&amp;) const&amp;;
+    template &lt;class U&gt; T value_or(U&amp;&amp;) &amp;&amp;;
+
+  <var>private:</var>
+    <var>bool init; //</var> <em>exposition only</em>
+    <var>T*   val;  //</var> <em>exposition only</em>
+  };
+
+} // <em>namespace std</em></pre>
+
+<p>Engaged instances of <code>optional&lt;T&gt;</code> where <code>T</code> is of object type shall contain a value of type <code>T</code> within its own storage. This value is referred to as the <em>contained value</em> of the optional object. Implementations are not permitted to use additional storage, such as dynamic memory, to allocate its contained value.  The contained value shall be allocated in a region of the <code>optional&lt;T&gt;</code> storage suitably aligned for the type <code>T</code>.
+
+</p><p>Members <code><var>init</var></code> and <code><var>val</var></code> are provided for exposition only. Implementations need not provide those members. <code><var>init</var></code> indicates whether the <code>optional</code> object's contained value has been initialized (and not yet destroyed); <code><var>val</var></code> points to (a possibly uninitialized) contained value.
+  </p>
+
+<p><code>T</code> shall be an object type and shall satisfy the requirements of <code>Destructible</code> (Table 24).</p>
+
+
+
+
+<h5><a name="optional.object.ctor">20.5.4.1 Constructors <span style="float:right">[optional.object.ctor]</span></a></h5>
+
+  
+  <p class="function">
+  <code>constexpr optional&lt;T&gt;::optional() noexcept;</code><br>
+  <code>constexpr optional&lt;T&gt;::optional(nullopt_t) noexcept;</code>
+  </p>
+
+  <dl class="attribute">
+  <dt>Postconditions:</dt> <dd><p><code>*this</code> is disengaged.</p></dd>
+  <dt>Remarks:</dt> <dd><p>No <code>T</code> object referenced is initialized. For every object type <code>T</code> these constructors shall be <code>constexpr</code> constructors (7.1.5).</p></dd>
+  </dl>
+
+  
+  <p class="function">
+  <code>optional&lt;T&gt;::optional(const optional&lt;T&gt;&amp; <var>rhs</var>);</code>
+  </p>
+
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code><var>rhs</var></code> is engaged initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with the expression <code>*<var>rhs</var></code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>bool(<var>rhs</var>) == bool(*this)</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>optional&lt;T&gt;::optional(optional&lt;T&gt; &amp;&amp; <var>rhs</var>) noexcept(<em>see below</em>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code><var>rhs</var></code> is engaged initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with the expression <code>std::move(*<var>rhs</var>)</code>. <code>bool(<var>rhs</var>)</code> is unchanged.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>bool(<var>rhs</var>) == bool(*this)</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The expression inside <code>noexcept</code> is equivalent to:</p> <pre>is_nothrow_move_constructible&lt;T&gt;::value</pre></dd>
+  </dl>
+
+  
+  <p class="function">
+  <code>optional&lt;T&gt;::optional(const T&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with the expression <code><var>v</var></code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If <code>T</code>'s selected constructor is a <code>constexpr</code> constructor, this constructor shall be a <code>constexpr</code> constructor.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>optional&lt;T&gt;::optional(T&amp;&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with the expression <code>std::move(<var>v</var>)</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If <code>T</code>'s selected constructor is a <code>constexpr</code> constructor, this constructor shall be a <code>constexpr</code> constructor.</p></dd>
+  </dl>
+  
+<!--  
+  <p class="function">
+  <code>template &lt;class U&gt; explicit optional&lt;T&gt;::optional(U&amp;&amp; <var>v</var>);<br>template &lt;class U&gt; optional&lt;T&gt;::optional(U&amp;&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, U&amp;&amp;&gt;::value</code> is true.</p></dd>
+    <dt>Effects:</dt> <dd><p>Initializes the contained value as if initializing an object of type <code>T</code> with argument <code>std::forward&lt;U&gt;(<var>v</var>)</code>.</p></dd>
+
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged and <code>*(*this)</code> is equivalent to <code><var>v</var></code> if converted to <code>T</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall not participate in overload resolution unless <code>OnlyExplicitlyConstructible(T, U&amp;&amp;)</code> is <code>true</code>. The second function shall not participate in the overload resolution unless <code>is_convertible&lt;U&amp;&amp;, T&gt;::value</code> is <code>true</code>. The expression inside <code>noexcept</code> is equivalent to:</p> <pre>noexcept(T(std::declval&lt;U&amp;&amp;&gt;()))</pre></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; explicit optional&lt;T&gt;::optional(const optional&lt;U&gt;&amp; <var>rhs</var>);<br>template &lt;class U&gt;  optional&lt;T&gt;::optional(const optional&lt;U&gt;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, const U&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>bool(<var>rhs</var>) == true</code> initializes the contained value as if constructing an object of type <code>T</code> with argument <code>*<var>rhs</var></code></p></dd>
+    <dt>Postconditions:</dt> <dd><p>If <code>bool(<var>rhs</var>) == false</code> then <code>*this</code> is disengaged; otherwise <code>*this</code> is engaged and <code>*(*this)</code> is equivalent to <code>*<var>rhs</var></code> if converted to <code>T</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall not participate in overload resolution unless <code>OnlyExplicitlyConstructible(T, const U&amp;)</code> is <code>true</code>. The second function shall not participate in the overload resolution unless <code>is_convertible&lt;const U&amp;, T&gt;::value</code> is <code>true</code>.</dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; explicit optional&lt;T&gt;::optional(optional&lt;U&gt;&amp;&amp; <var>rhs</var>);<br>template &lt;class U&gt;  optional&lt;T&gt;::optional(optional&lt;U&gt;&amp;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, U&amp;&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>bool(<var>rhs</var>) == true</code> initializes the contained value as if constructing an object of type <code>T</code> with argument <code>std::move(*<var>rhs</var>)</code></p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall not participate in overload resolution unless <code>OnlyExplicitlyConstructible(T, U&amp;&amp;)</code> is <code>true</code>. The second function shall not participate in the overload resolution unless <code>is_convertible&lt;U&amp;&amp;, T&gt;::value</code> is <code>true</code>.</dd>
+  </dl>
+  
+  <p class="function">
+  <code>template &lt;class U&gt; explicit optional&lt;T&gt;::optional(initializer_list&lt;U&gt; <var>il</var>);<br>template &lt;class U&gt;  optional&lt;T&gt;::optional(initializer_list&lt;U&gt;<var>il</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>bool(<var>rhs</var>) == true</code> initializes the contained value as if constructing an object of type <code>T</code> with argument <code><var>il</var></code></p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall not participate in overload resolution unless <code>OnlyExplicitlyConstructible(T, initializer_list&lt;U&gt;)</code> is <code>true</code>. The second function shall not participate in the overload resolution unless <code>is_convertible&lt;initializer_list&lt;U&gt;&amp;, T&gt;::value</code> is <code>true</code>.</dd>
+  </dl>
+-->
+  
+  <p class="function">
+  <code>template &lt;class... Args&gt; constexpr explicit optional(in_place_t, Args&amp;&amp;... <var>args</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Initializes the contained value as if constructing an object of type <code>T</code> with the arguments <code>std::forward&lt;Args&gt;(<var>args</var>)...</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If <code>T</code>'s constructor selected for the initialization is a <code>constexpr</code> constructor, this constructor shall be a <code>constexpr</code> constructor.</p></dd>
+  </dl>
+
+
+  <p class="function">
+  <code>template &lt;class U, class... Args&gt;<br>
+  explicit optional(in_place_t, initializer_list&lt;U&gt; <var>il</var>, Args&amp;&amp;... <var>args</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Initializes the contained value as if constructing an object of type <code>T</code> with the arguments <code><var>il</var>, std::forward&lt;Args&gt;(<var>args</var>)...</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The function shall not participate in overload resolution unless <code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If <code>T</code>'s constructor selected for the initialization is a <code>constexpr</code> constructor, this constructor shall be a <code>constexpr</code> constructor.</p></dd>
+  </dl>
+
+
+<h5><a name="optional.object.dtor">20.5.4.2 Destructor  <span style="float:right">[optional.object.dtor]</span></a></h5>
+  
+  <p class="function"> 
+  <code>optional&lt;T&gt;::~optional();</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Effects:</dt> <dd><p>If <code>is_trivially_destructible&lt;T&gt;::value != true</code> and <code>*this</code> is engaged, calls <code><var>val</var>-&gt;T::~T()</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If <code>is_trivially_destructible&lt;T&gt;::value == true</code> then this destructor shall be a trivial destructor.</p></dd>
+  </dl>
+  
+  
+  
+<h5><a name="optional.object.assign">20.5.4.3 Assignment  <span style="float:right">[optional.object.assign]</span></a></h5>
+  
+  
+  <p class="function">
+  <code>optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(nullopt_t) noexcept;</code>
+  </p>
+
+  <dl class="attribute">
+    <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged calls <code><var>val</var>-&gt;T::~T()</code> to destroy the <em>contained value</em>; otherwise no effect.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is disengaged.</p></dd>
+  </dl>
+  
+  <!--
+  <p class="function">
+  <code>optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(const T&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_copy_assignable&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged assigns <code><var>rhs</var></code> to the contained value; otherwise initializes the contained value as if direct-non-list-initializing object of type <code>T</code> with <code><var>rhs</var></code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged and <code>*(*this)</code> is equivalent to <code><var>rhs</var></code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, value of <code><var>init</var></code> remains unchanged. If an exception is thrown during the call to <code>T</code>'s copy constructor, no effect. If an exception is thrown during the call to <code>T</code>'s copy assignment, the state of its contained value is as defined by the exception safety guarantee of <code>T</code>'s copy assignment.</p></dd>
+  </dl>
+
+  
+  <p class="function">
+  <code>optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(T&amp;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_move_assignable&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged assigns <code>std::move(<var>rhs</var>)</code> to the contained value; otherwise initializes the contained value as if direct-non-list-initializing object of type <code>T</code> with <code>std::move(<var>rhs</var>)</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged and <code>*(*this)</code> is equivalent to the value that <code><var>rhs</var></code> had initially.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, value of <code><var>init</var></code> remains unchanged. If an exception is thrown during the call to <code>T</code>'s move constructor, the state of <code><var>rhs</var></code> is determined by exception safety guarantee of <code>T</code>'s move constructor. If an exception is thrown during the call to <code>T</code>'s move assignment, the state of <code><var>*val</var></code> and <code><var>rhs</var></code> is determined by exception safety guarantee of <code>T</code>'s move assignment.</p></dd>
+  </dl>
+  
+  -->
+  <p class="function">
+  <code>optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(const optional&lt;T&gt;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_copy_assignable&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <!--<dd><p>If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == false</code>, no effect. If <code><var>init</var> == true && <var>rhs.init</var> == false</code>, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>. If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == true</code>, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>*<var>rhs</var></code>. If <code><var>init</var> == true &amp;&amp; <var>rhs.init</var> == true</code>, assigns <code>*<var>rhs</var></code> to the contained value.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>-->
+	<dd><br><ul>
+	  <li>If <code>*this</code> is disengaged and <code><var>rhs</var></code> is disengaged, no effect, otherwise</li> 
+	  <li>if <code>*this</code> is engaged and <code><var>rhs</var></code> is disengaged, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>, otherwise</li>
+	  <li>if <code>*this</code> is disengaged and <code><var>rhs</var></code> is engaged, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>*<var>rhs</var></code>, otherwise</li>
+	  <li>(if both <code>*this</code> and <code><var>rhs</var></code> are engaged) assigns <code>*<var>rhs</var></code> to the contained value.</li>
+	  </ul></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>bool(<var>rhs</var>) == bool(*this)</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, values of <code><var>init</var></code> and <code><var>rhs.init</var></code> remain unchanged. If an exception is thrown during the call to <code>T</code>'s copy constructor, no effect. If an exception is thrown during the call to <code>T</code>'s copy assignment, the state of its contained value is as defined by the exception safety guarantee of <code>T</code>'s copy constructor.</p></dd>
+  </dl>
+  
+ 
+  <p class="function">
+  <code>optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(optional&lt;T&gt;&amp;&amp; <var>rhs</var>) noexcept(<em>see below</em>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_move_assignable&lt;T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <!--<dd><p>If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == false</code>, no effect. If <code><var>init</var> == true && <var>rhs.init</var> == false</code>, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>. If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == true</code>, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>std::move(*<var>rhs</var>)</code>. If <code><var>init</var> == true &amp;&amp; <var>rhs.init</var> == true</code>, assigns <code>std::move(*<var>rhs</var>)</code> to the contained value.</p></dd>-->
+	<dd><br><ul>
+	  <li>If <code>*this</code> is disengaged and <code><var>rhs</var></code> is disengaged, no effect, otherwise</li> 
+	  <li>if <code>*this</code> is engaged and <code><var>rhs</var></code> is disengaged, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>, otherwise</li>
+	  <li>if <code>*this</code> is disengaged and <code><var>rhs</var></code> is engaged, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>std::move(*<var>rhs</var>)</code>, otherwise</li>
+	  <li>(if both <code>*this</code> and <code><var>rhs</var></code> are engaged) assigns <code>std::move(*<var>rhs</var>)</code> to the contained value.</li>
+	  </ul></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>bool(<var>rhs</var>) == bool(*this)</code>.</p></dd>
+
+    <dt>Remarks:</dt> <dd><p>The expression inside <code>noexcept</code> is equivalent to:</p> <pre>is_nothrow_move_assignable&lt;T&gt;::value &amp;&amp; is_nothrow_move_constructible&lt;T&gt;::value</pre></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, values of <code><var>init</var></code> and <code><var>rhs.init</var></code> remain unchanged. If an exception is thrown during the call to <code>T</code>'s move constructor, the state of <code>*rhs.val</code> is determined by exception safety guarantee of <code>T</code>'s move constructor. If an exception is thrown during the call to <code>T</code>'s move assignment, the state of <code><var>*val</var></code> and <code>*rhs.val</code> is determined by exception safety guarantee of <code>T</code>'s move assignment.</p></dd>
+
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(U&amp;&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, U&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;U, T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged assigns <code>std::forward&lt;U&gt;(<var>v</var>)</code> to the contained value; otherwise initializes the contained value as if direct-non-list-initializing object of type <code>T</code> with <code>std::forward&lt;U&gt;(<var>v</var>)</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, value of <code><var>init</var></code> remains unchanged. If an exception is thrown during the call to <code>T</code>'s constructor, the state of <code><var>v</var></code> is determined by exception safety guarantee of <code>T</code>'s constructor. If an exception is thrown during the call to <code>T</code>'s assignment, the state of <code><var>*val</var></code> and <code><var>v</var></code> is determined by exception safety guarantee of <code>T</code>'s assignment.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The function shall not participate in overload resolution unless  <code>is_same&lt;typename remove_reference&lt;U&gt;::type, T&gt;::value</code> is  <code>true</code>.</p></dd>
+  </dl>
+  <p>[<i>Note:</i> The reason to provide such generic assignment and then constraining it so that effectively <code>T</code> == <code>U</code> is to guarantee that assignment of the form <code>o = {}</code> is unambiguous. —<i>end note</i>]</p>
+
+  <!--
+  <p class="function">
+  <code>template &lt;class U&gt; optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(U&amp;&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, U&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;U, T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged assigns <code>std::forward&lt;U&gt;(<var>v</var>)</code> to the contained value; otherwise initializes the contained value as if direct-non-list-initializing object of type <code>T</code> with <code>std::forward&lt;U&gt;(<var>v</var>)</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged and <code>*(*this)</code> is equivalent to the value that <code><var>v</var></code> had initially.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, value of <code><var>init</var></code> remains unchanged. If an exception is thrown during the call to <code>T</code>'s constructor, the state of <code><var>v</var></code> is determined by exception safety guarantee of <code>T</code>'s constructor. If an exception is thrown during the call to <code>T</code>'s assignment, the state of <code><var>*val</var></code> and <code><var>v</var></code> is determined by exception safety guarantee of <code>T</code>'s assignment.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The function shall not participate in overload resolution if type <code>decay&lt;U&gt;::type</code> is an instantiation of class template <code>optional</code>.</dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(const optional&lt;U&gt;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, const U&amp;&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;T, const U&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == false</code>, no effect. If <code><var>init</var> == true && <var>rhs.init</var> == false</code>, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>. If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == true</code>, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>*<var>rhs</var></code>. If <code><var>init</var> == true &amp;&amp; <var>rhs.init</var> == true</code>, assigns <code>*<var>rhs</var></code> to the contained value.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p>If <code>bool(<var>rhs</var>) == false</code> then <code>*this</code> is disengaged; otherwise <code>*this</code> is engaged and <code>*(*this)</code> is equivalent to <code>*<var>rhs</var></code> converted to <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, values of <code><var>init</var></code> and <code><var>rhs.init</var></code> remain unchanged. If an exception is thrown during the call to <code>T</code>'s constructor, no effect. If an exception is thrown during the call to <code>T</code>'s  assignment, the state of i<code><var>*val</var></code> is defined by the exception safety guarantee of <code>T</code>'s  assignment.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(optional&lt;U&gt;&amp;&amp; <var>rhs</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, U&amp;&amp;&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;T, U&amp;&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+
+    <dt>Effects:</dt> <dd><p>If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == false</code>, no effect. If <code><var>init</var> == true && <var>rhs.init</var> == false</code>, destroys the contained value by calling <code><var>val</var>-&gt;T::~T()</code>. If <code><var>init</var> == false &amp;&amp; <var>rhs.init</var> == true</code>, initializes the contained value as if direct-non-list-initializing an object of type <code>T</code> with <code>std::move(*<var>rhs</var>)</code>. If <code><var>init</var> == true &amp;&amp; <var>rhs.init</var> == true</code>, assigns <code>std::move(*<var>rhs</var>)</code> to the contained value.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p>If <code>bool(<var>rhs</var>) == false</code> then <code>*this</code> is disengaged; otherwise <code>*this</code> is engaged and <code>*(*this)</code> is equivalent to the value <code>*<var>rhs</var></code> had initially if converted to <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, values of <code><var>init</var></code> and <code><var>rhs.init</var></code> remain unchanged. If an exception is thrown during the call to <code>T</code>'s constructor, no effect. If an exception is thrown during the call to <code>T</code>'s assignment, the state of <code><var>*val</var></code> is defined by the exception safety guarantee of <code>T</code>'s assignment.</p></dd>
+  </dl>
+  
+
+  <p class="function">
+  <code>template &lt;class U&gt; optional&lt;T&gt;&amp; optional&lt;T&gt;::operator=(initializer_list&lt;U&gt; <var>il</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;T, initializer_list&lt;U&gt;&amp;&gt;::value</code> is <code>true</code>.</p></dd>
+     <dt>Effects:</dt> <dd><p>If <code>*this</code> is engaged assigns <code><var>il</var></code> to the contained value; otherwise initializes the contained value as if direct-non-list-initializing object of type <code>T</code> with <code><var>il</var></code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*this</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Whatever <code>T::T(initializer_list&lt;U&gt;)</code> or <code>T::operator=(initializer_list&lt;U&gt;)</code> throws.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, value of <code><var>init</var></code> remains unchanged. If an exception is thrown during the call to <code>T</code>'s constructor, no effect. If an exception is thrown during the call to <code>T</code>'s assignment, the state of its contained value is as defined by the exception safety guarantee of <code>T</code>'s assignemnt.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The function shall not participate in overload resolution unless <code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;&gt;::value</code> is <code>true</code> and <code>is_assignable&lt;T, initializer_list&lt;U&gt;&gt;::value</code> is <code>true</code>.</dd>
+  </dl>
+-->
+  
+  <p class="function">
+  <code>template &lt;class... Args&gt; void optional&lt;T&gt;::emplace(Args&amp;&amp;... <var>args</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Calls <code>*this = nullopt</code>. Then initializes the contained value as if constructing an object of type <code>T</code> with the arguments <code>std::forward&lt;Args&gt;(<var>args</var>)...</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If an exception is thrown during the call to <code>T</code>'s constructor, <code>*this</code> is disengaged, and the previous <code><var>*val</var></code> (if any) has been destroyed.</p></dd>
+  </dl>
+  
+  
+   <p class="function">
+  <code>template &lt;class U, class... Args&gt; void optional&lt;T&gt;::emplace(initializer_list&lt;U&gt; <var>il</var>, Args&amp;&amp;... <var>args</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Effects:</dt> <dd><p>Calls <code>*this = nullopt</code>. Then initializes the contained value as if constructing an object of type <code>T</code> with the arguments <code><var>il</var>, std::forward&lt;Args&gt;(<var>args</var>)...</code>.</p></dd>
+    <dt>Postconditions:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If an exception is thrown during the call to <code>T</code>'s constructor, <code>*this</code> is disengaged, and the previous <code><var>*val</var></code> (if any) has been destroyed.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The function shall not participate in overload resolution unless <code>is_constructible&lt;T, initializer_list&lt;U&gt;&amp;, Args&amp;&amp;...&gt;::value</code> is <code>true</code>.</p></dd>
+  </dl>
+
+
+  
+<h5><a name="optional.object.swap">20.5.4.4 Swap <span style="float:right">[optional.object.swap]</span></a></h5>
+
+
+  <p class="function">
+  <code>void optional&lt;T&gt;::swap(optional&lt;T&gt;&amp; rhs) noexcept(<em>see below</em>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> LValues of type T shall be swappable and <code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code>.<p></p>
+    <dt>Effects:</dt> <!--<dd><p>If <code><var>init</var> == false && <var>rhs.init</var> == false</code>, no effect. If <code><var>init</var> == true && <var>rhs.init</var> == false</code>, initializes the contained value of <code><var>rhs</var></code> by direct-initialization with <code>std::move(*(*this))</code>, followed by <code>val-&gt;T::~T(), swap(<var>init</var>, <var>rhs.init</var>)</code>. If <code><var>init</var> == false && <var>rhs.init</var> == true</code>, initializes the contained value of <code>*this</code> by direct-initialization with <code>std::move(*<var>rhs</var>)</code>, followed by <code>rhs.val-&gt;T::~T(), swap(<var>init</var>, <var>rhs.init</var>)</code>. If <code><var>init</var> == true && <var>rhs.init</var> == true</code>, calls <code>swap(*(*this), *<var>rhs</var>)</code>.</p></dd>-->
+	<dd><br><ul>
+	  <li>If <code>*this</code> is disengaged and <code><var>rhs</var></code> is disengaged, no effect, otherwise</li> 
+	  <li>if <code>*this</code> is engaged and <code><var>rhs</var></code> is disengaged, initializes the contained value of <code><var>rhs</var></code> by direct-initialization with <code>std::move(*(*this))</code>, followed by <code>val-&gt;T::~T(), swap(<var>init</var>, <var>rhs.init</var>)</code>, otherwise</li>
+	  <li>if <code>*this</code> is disengaged and <code><var>rhs</var></code> is engaged, initializes the contained value of <code>*this</code> by direct-initialization with <code>std::move(*<var>rhs</var>)</code>, followed by <code>rhs.val-&gt;T::~T(), swap(<var>init</var>, <var>rhs.init</var>)</code>, otherwise</li>
+	  <li>(if both <code>*this</code> and <code><var>rhs</var></code> are engaged) calls <code>swap(*(*this), *<var>rhs</var>)</code>.</li>
+	  </ul></dd>
+    <dt>Throws:</dt> <dd><p>Any exceptions that the expressions in the Effects clause throw.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The expression inside <code>noexcept</code> is equivalent to: </p><pre>is_nothrow_move_constructible&lt;T&gt;::value &amp;&amp; noexcept(swap(declval&lt;T&amp;&gt;(), declval&lt;T&amp;&gt;()))</pre></dd>
+    <dt>Exception Safety:</dt> <dd><p>If any exception is thrown, values of <code><var>init</var></code> and <code><var>rhs.init</var></code> remain unchanged. If an exception is thrown during the call to function <code>swap</code> the state of <code><var>*val</var></code> and <code>*rhs.val</code> is determined by the exception safety guarantee of <code>swap</code> for lvalues of <code>T</code>. If an exception is thrown during the call to <code>T</code>'s move constructor, the state of <code><var>*val</var></code> and <code>*rhs.val</code> is determined by the exception safety guarantee of <code>T</code>'s move constructor.</p></dd>
+
+  </dl>
+
+  
+  
+<h5><a name="optional.object.observe">20.5.4.5 Observers  <span style="float:right">[optional.object.observe]</span></a></h5>
+
+
+  <p class="function">
+  <code>constexpr T const* optional&lt;T&gt;::operator-&gt;() const;<br>T* optional&lt;T&gt;::operator-&gt;();</code>
+
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Returns:</dt> <dd><p><code><var>val</var></code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Nothing.</p></dd>
+    <dt>Remarks:</dt> <dd><p>Unless <code>T</code> is a user-defined type with overloaded unary <code>operator&amp;</code>, the first function shall be a <code>constexpr</code> function.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>constexpr T const&amp; optional&lt;T&gt;::operator*() const;<br>T&amp; optional&lt;T&gt;::operator*();</code>
+
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>*this</code> is engaged.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>*<var>val</var></code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Nothing.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall be a <code>constexpr</code> function.</p></dd>
+
+  </dl>
+  
+  
+  <p class="function">
+  <code>constexpr explicit optional&lt;T&gt;::operator bool() noexcept;</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt> <dd><p><code><var>init</var></code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>this function shall be a <code>constexpr</code> function.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>constexpr T const&amp; optional&lt;T&gt;::value() const;<br>T&amp; optional&lt;T&gt;::value();</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt> <dd><p><code><var>*val</var></code>, if <code>bool(*this)</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p><code>bad_optional_access</code> if <code>!*this</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>The first function shall be a <code>constexpr</code> function.</p></dd>
+
+  </dl>
+  
+  
+
+  <p class="function">
+  <code>template &lt;class U&gt; constexpr T optional&lt;T&gt;::value_or(U&amp;&amp; <var>v</var>) const&amp;;</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_convertible&lt;U&amp;&amp;, T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>bool(*this) ? **this : static_cast&lt;T&gt;(std::forward&lt;U&gt;(<var>v</var>))</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If <code><var>init</var> == true</code> and exception is thrown during the call to <code>T</code>'s constructor, the value of <code><var>init</var></code> and <code><var>v</var></code> remains unchanged and the state of <code><var>*val</var></code> is determined by the exception safety guarantee of the selected constructor of <code>T</code>. Otherwise, when exception is thrown during the call to <code>T</code>'s constructor, the value of <code><var>*this</var></code> remains unchanged and the state of <code><var>v</var></code> is determined by the exception safety guarantee of the selected constructor of <code>T</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>If the selected constructor of <code>T</code> is a <code>constexpr</code> constructor, this function shall be a <code>constexpr</code> function.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class U&gt; T optional&lt;T&gt;::value_or(U&amp;&amp; <var>v</var>) &amp;&amp;;</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_convertible&lt;U&amp;&amp;, T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code>bool(*this) ? std::move(**this) : static_cast&lt;T&gt;(std::forward&lt;U&gt;(<var>v</var>))</code>.</p></dd>
+    <dt>Throws:</dt> <dd><p>Any exception thrown by the selected constructor of <code>T</code>.</p></dd>
+    <dt>Exception Safety:</dt> <dd><p>If <code><var>init</var> == true</code> and exception is thrown during the call to <code>T</code>'s constructor, the value of <code><var>init</var></code> and <code><var>v</var></code> remains unchanged and the state of <code><var>*val</var></code> is determined by the exception safety guarantee of the <code>T</code>'s constructor. Otherwise, when exception is thrown during the call to <code>T</code>'s constructor, the value of <code><var>*this</var></code> remains unchanged and the state of <code><var>v</var></code> is determined by the exception safety guarantee of the selected constructor of <code>T</code>.</p></dd>
+  </dl>
+
+
+  
+<h4><a name="optional.inplace">20.5.5 In-place construction  <span style="float:right">[optional.inplace]</span></a></h4>
+
+
+  <p class="function">
+  <code>struct in_place_t{}; <br>constexpr in_place_t in_place{};</code>
+  </p>
+
+  <p>The struct <code>in_place_t</code> is an empty structure type used as a unique type to disambiguate constructor and function overloading. Specifically, <code>optional&lt;T&gt;</code> has a constructor with <code>in_place_t</code> as the first argument followed by an argument pack; this indicates that <code>T</code> should be constructed in-place (as if by a call to placement new expression) with the forwarded argument pack as parameters.
+  </p>
+
+  
+<h4><a name="optional.nullopt">20.5.6 Disengaged state indicator  <span style="float:right">[optional.nullopt]</span></a></h4>
+
+
+  <p class="function">
+  <code>struct nullopt_t{<em>see below</em>}; <br>constexpr nullopt_t nullopt(<em>unspecified</em>);</code>
+  </p>
+
+  <p>The struct <code>nullopt_t</code> is an empty structure type used as a unique type to indicate a disengaged state for <code>optional</code> objects. In particular, <code>optional&lt;T&gt;</code> has a constructor with <code>nullopt_t</code> as single argument; this indicates that a disengaged optional object shall be constructed.
+  </p>
+  
+  <p>Type <code>nullopt_t</code> shall not have a default constructor. It shall be a literal type. Constant <code>nullopt</code> shall be initialized with an argument of literal type.</p>
+  
+ 
+  
+<h4><a name="optional.bad_optional_access">20.5.7 Class <code>bad_optional_access</code>  <span style="float:right">[optional.bad_optional_access]</span></a></h4>
+ 
+<pre>namespace std {
+  class bad_optional_access : public logic_error {
+  public:
+    explicit bad_optional_access(const string&amp; what_arg);
+    explicit bad_optional_access(const char* what_arg);
+  };
+}</pre>
+
+<p>The class <code>bad_optional_access</code> defines the type of objects thrown as exceptions to report the situation where an attempt is made to access the value of a disengaged optional object.</p>
+
+  <p class="function"> 
+  <code>bad_optional_access(const string&amp; what_arg);</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Effects:</dt> <dd><p>Constructs an object of class <code>bad_optional_access</code>.</p></dd>
+  <dt>Postcondition:</dt> <dd><p><code>strcmp(what(), what_arg.c_str()) == 0</code>.</p></dd>
+  </dl>
+  
+  <p class="function"> 
+  <code>bad_optional_access(const char* what_arg);</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Effects:</dt> <dd><p>Constructs an object of class <code>bad_optional_access</code>.</p></dd>
+  <dt>Postcondition:</dt> <dd><p><code>strcmp(what(), what_arg) == 0</code>.</p></dd>
+  </dl>
+
+ 
+<h4><a name="optional.relops">20.5.8 Relational operators  <span style="float:right">[optional.relops]</span></a></h4>
+ 
+
+  <p class="function"> 
+  <code>template &lt;class T&gt; constexpr bool operator==(const optional&lt;T&gt;&amp; x, const optional&lt;T&gt;&amp; y);</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Requires:</dt> <dd><p><code>T</code> shall meet the requirements of <code>EqualityComparable</code>.</p></dd>
+  <dt>Returns:</dt> <dd><p>If <code>bool(x) != bool(y)</code>, <code>false</code>; otherwise if <code>bool(x) == false</code>, <code>true</code>; otherwise <code>*x == *y</code>.</p></dd>
+  <dt>Remarks:</dt> <dd><p>Instantiations of this function template for which <code>*x == *y</code> is a core constant expression, shall be <code>constexpr</code> functions.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator&lt;(const optional&lt;T&gt;&amp; <var>x</var>, const optional&lt;T&gt;&amp; <var>y</var>);</code> 
+  </p>
+
+  <dl class="attribute">
+  <dt>Requires:</dt> <dd><p>Expression <code>less&lt;T&gt;{}(*<var>x</var>, *<var>y</var>)</code> shall be well-formed.</p></dd>
+  <dt>Returns:</dt> <dd><p>If <code>(!<var>y</var>)</code>, <code>false</code>; otherwise, if <code>(!<var>x</var>)</code>, <code>true</code>; otherwise <code>less&lt;T&gt;{}(*<var>x</var>, *<var>y</var>)</code>.</p></dd>
+  <dt>Remarks:</dt> <dd><p>Instantiations of this function template for which <code>less&lt;T&gt;{}(*<var>x</var>, *<var>y</var>)</code> is a core constant expression, shall be <code>constexpr</code> functions.</p></dd>
+  </dl>
+
+  
+
+ 
+<h4><a name="optional.nullops">20.5.9 Comparison with <code>nullopt</code> <span style="float:right">[optional.nullops]</span></a></h4>
+ 
+  
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator==(const optional&lt;T&gt;&amp; <var>x</var>, nullopt_t) noexcept;<br>template &lt;class T&gt; constexpr bool operator==(nullopt_t, const optional&lt;T&gt;&amp; x) noexcept;</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>(!<var>x</var>)</code>.</p></dd>
+  </dl>
+
+
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator&lt;(const optional&lt;T&gt;&amp; <var>x</var>, nullopt_t) noexcept;</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>false</code>.</p></dd>
+  </dl>
+
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator&lt;(nullopt_t, const optional&lt;T&gt;&amp; <var>x</var>) noexcept;</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>bool(<var>x</var>)</code>.</p></dd>
+  </dl>
+
+  
+ 
+<h4><a name="optional.comp_with_t">20.5.10 Comparison with <code>T</code> <span style="float:right">[optional.comp_with_t]</span></a></h4>
+
+
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator==(const optional&lt;T&gt;&amp; <var>x</var>, const T&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>bool(<var>x</var>) ? *<var>x</var> == <var>v</var> : false</code>.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator==(const T&amp; <var>v</var>, const optional&lt;T&gt;&amp; x);</code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>bool(<var>x</var>) ? <var>v</var> == *<var>x</var> : false</code>.</p></dd>
+  </dl>
+  
+  
+  <!-- -->
+  
+  <p class="function">
+  <code>template &lt;class T&gt; constexpr bool operator&lt;(const optional&lt;T&gt;&amp; <var>x</var>, const T&amp; <var>v</var>);<br></code>
+  </p>
+  
+  <dl class="attribute">
+  <dt>Returns:</dt> <dd><p><code>bool(<var>x</var>) ? less&lt;T&gt;{}(*<var>x</var>, <var>v</var>) : true</code>.</p></dd>
+  </dl>
+
+  
+<h4><a name="optional.specalg">20.5.11 Specialized algorithms <span style="float:right">[optional.specalg]</span></a></h4>
+
+
+  <p class="function">
+  <code>template &lt;class T&gt; void swap(optional&lt;T&gt;&amp; x, optional&lt;T&gt;&amp; y) noexcept(noexcept(x.swap(y)));</code>
+  </p>
+
+  <dl class="attribute">
+    <!--<dt>Requires:</dt> <dd><p><code>is_reference&lt;T&gt;::value == false</code>.</p></dd>-->
+    <dt>Effects:</dt> <dd><p>calls <code>x.swap(y)</code>.</p>  
+  </dd></dl><!--
+
+
+  <p class="function">
+  <code>template &lt;class T, class V&gt;<br>
+    &nbsp;&nbsp;typename decay&lt;T&gt;::type get_value_or(const optional&lt;T&gt;&amp; <var>op</var>, V&amp;&amp; <var>v</var>);</code>
+  </p>
+
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_copy_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_convertible&lt;V&amp;&amp;, T&gt;::value</code> is <code>true</code>.</p></dd>
+    <dt>Returns:</dt> <dd><p><code><var>op</var> ? *<var>op</var> : static_cast&lt;T&gt;(std::forward&lt;V&gt;(<var>v</var>))</code>.</p></dd>
+  </dl>
+  
+  
+  <p class="function">
+  <code>template &lt;class T, class V&gt;<br>
+    &nbsp;&nbsp;typename decay&lt;T&gt;::type get_value_or(optional&lt;T&gt;&amp;&amp; <var>op</var>, V&amp;&amp; <var>v</var>);</code>
+  </p>
+
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p><code>is_move_constructible&lt;T&gt;::value</code> is <code>true</code> and <code>is_convertible&lt;V&amp;&amp;, T&gt;::value</code> is <code>true</code>.</p></dd>
+
+    <dt>Returns:</dt> <dd><p><code><var>op</var> ? std::move(*<var>op</var>) : static_cast&lt;T&gt;(std::forward&lt;V&gt;(<var>v</var>))</code>.</p></dd>
+    <dt>Remarks:</dt> <dd><p>This function provides the same exception safety as <code>T</code>'s move-constructor.</p></dd>
+  </dl>-->
+  
+  
+  <p class="function">
+  <code>template &lt;class T&gt;<br>
+      constexpr optional&lt;typename decay&lt;T&gt;::type&gt; make_optional(T&amp;&amp; <var>v</var>);</code>
+  </p>
+  
+  <dl class="attribute">
+    <dt>Returns:</dt> <dd><p><code>optional&lt;typename decay&lt;T&gt;::type&gt;(std::forward&lt;T&gt;(<var>v</var>))</code>.</p></dd>
+  </dl>
+  
+  
+<h4><a name="optional.hash">20.5.12 Hash support <span style="float:right">[optional.hash]</span></a></h4>
+
+
+  <p class="function">
+  <code>template &lt;class T&gt; struct hash&lt;optional&lt;T&gt;&gt;;</code>
+  </p>
+
+  <dl class="attribute">
+    <dt>Requires:</dt> <dd><p>the template specilaization <code>hash&lt;T&gt;</code> shall meet the requirements of class template <code>hash</code> (20.9.12).
+      The template specilaization <code>hash&lt;optional&lt;T&gt;&gt;</code> shall meet the requirements of class template <code>hash</code>. 
+      For an object <code>o</code> of type <code>optional&lt;T&gt;</code>, if <code>bool(o) == true</code>, 
+      <code>hash&lt;optional&lt;T&gt;&gt;()(o)</code> shall evaluate to the same value as <code>hash&lt;T&gt;()(*o)</code>.</p></dd> 
+  </dl>
+  
+</blockquote>
+
+
+
+
+<h2><a name="optional_ref">Auxiliary proposal — optional references</a></h2>
+
+
+
+<p>We propose optional references as an auxiliary proposal. This is to give the Committee the freedom to make the decision to accept or not optional references independently of the decision to accept optional values. </p>
+
+
+<h3><a name="optional_ref.overview">Overview</a></h3>
+
+<p>Optional references are surprising to many people because they do not appear to add any more functionality than pointers do. There exist though a couple of arguments in favour optional references:</p>
+
+<ul>
+<li><code>optional&lt;T&gt;</code> can be used in generic code, were <code>T</code> can be either a reference or an object. </li>
+<li>It is slightly easier to pass arguments to functions, beacause addressof operator is not required. </li>
+<li>Raw pointers historically add confusion in the sense that it is not clear whether we should delete the value they point to or not, as well as whether we should expect <code>nullptr</code> or not. With optional references the answer to these questions is obvious.</li>
+</ul>
+
+
+<p>The interface for optional references is somewhat limited compared to that for optional values.</p>
+
+<pre>int i = 1;
+int j = 2;
+optional&lt;int&amp;&gt; ora;                <em>// disengaged optional reference to int</em>
+optional&lt;int&amp;&gt; orb = i;            <em>// contained reference refers to object i</em>
+
+*orb = 3;                          <em>// i becomes 3</em>
+ora = j;                           <em>// ERROR: optional refs do not have assignment from T</em>
+ora = optional&lt;int&amp;&gt;{j};           <em>// contained reference refers to object j</em>
+ora = {j};                         <em>// same as line above</em>
+orb = ora;                         <em>// rebinds orb to refers to the same object as ora</em>
+*orb = 7;                          <em>// j becomes 7</em>
+ora.emplace(j);                    <em>// OK: contained reference refers to object j</em>
+ora.emplace(i);                    <em>// OK: contained reference now refers to object i</em>
+ora = nullopt;                     <em>// OK: ora becomes disengaged</em>
+</pre>
+
+<p>In some aspects optional lvalue references act like raw pointers: they are rebindable, may become disengaged, and do not have special powers (such as extending the life-time of a temporary). In other aspects they act like C++ references: they do not provide pointer arithmetic, operations like comparisons, hashing are performed on referenced objects. </p>
+
+<pre>hash&lt;int&gt; hi;
+hash&lt;optional&lt;int&amp;&gt;&gt; hoi;
+
+int i = 0;
+int j = 0;
+optional&lt;int&amp;&gt; ori = i;            <em>// orj and ori refer to two different objects</em>
+optional&lt;int&amp;&gt; orj = j;            <em>// but with the same value</em>
+
+assert (hoi(ori) == hi(i));        
+assert (hoi(ori) == hoi(orj));     <em>// because we are hashing the values</em>
+assert (ori == orj);               <em>// because we are comparing the values</em>
+</pre>
+
+<p>Because optional references are easily implementable  with a raw pointer, we require that almost no operation on optional references (except <code>value</code> and <code>value_or</code>) throws exceptions. </p>
+
+<p>Optional references do not popagate constness to the object they indirect to:</p>
+
+<pre>int i = 9;
+const optional&lt;int&amp;&gt; mi = i;
+int&amp; r = *mi;                      <em>// OK: decltype(*mi) == int&amp;</em>
+ 
+optional&lt;const int&amp;&gt; ci = i;
+int&amp; q = *ci;                      <em>// ERROR: decltype(*ci) == const int&amp;</em>
+</pre>
+
+<p>Note also the peculiar way in which function <code>make_optional</code> can create optional references:</p>
+
+<pre>int i = 1;
+auto oi = make_optional(i);          <em>// decltype(oi) == optional&lt;int&gt;</em>
+auto ri = make_optional(ref(i));     <em>// decltype(ri) == optional&lt;int&amp;&gt;</em>
+</pre>
+
+
+
+<h3><a name="optional_ref.use_cases">Practical use cases</a></h3>
+
+
+<p>While used significantly less often, optional references are useful in certain cases. For instance, consider that you need to find a possibly missing element in some sort of a collection, and if it is found, change it. The following is a possible implementation of such function that will help with the find.</p>
+
+<pre>optional&lt;int&amp;&gt; find_biggest( vector&lt;int&gt;&amp; vec )
+{
+  optional&lt;int&amp;&gt; biggest; 
+  for (int &amp; val : vec) {
+    if (!biggest || *biggest &lt; val) {
+      biggest.emplace(val);
+    }
+  }
+  return biggest;
+} 
+</pre>
+
+<p>This could be alternatively implemented using a raw pointer; however, optional reference makes it clear that the caller will not be owing the object. For another example, consider that we want a function to modify the passed object (<code>storeHere</code> in the example) as one of its responsibilities, but we sometimes cannot provide the object, but we do want the function to perform other responsibilities. The following is the possible implementation</p>
+
+<pre>template &lt;typename T&gt;
+T getValue( optional&lt;T&gt; newVal = nullopt, optional&lt;T&amp;&gt; storeHere = nullopt )
+{
+  if (newVal) {
+    cached = *newVal;
+    
+    if (storeHere) {
+      *storeHere = *newVal; <em>// LEGAL: assigning T to T</em>
+    }      
+  }
+  return cached;      
+}
+</pre>
+
+<p>Again, this can also be implemented with pointers; however, with optional references the ownership of the memory is clear. Additionally, we do not have to use the indirection operator:</p>
+
+<pre>static int global = 0;
+const int newVal = 2;
+return getValue(newVal, global);
+</pre>
+
+
+<h3><a name="optional_ref.rationale.assign">Assignment for optional references</a></h3>
+
+<p>The semantics of optional references' copy assignment turned out to be very controversial. This is because whatever semantics for such assignment is chosen, it is confusing to many programmers. An optional reference can be seen as a reference with postponed initialization. In this case, assignment (to engaged optional reference) is expected to have deep copy semantics: it should assign value to the referred object. On the other hand, an optional reference can be seen as a pointer with different syntax. In this case the assignment (to engaged optional reference) should change the reference, so that it refers to the new object. Neither of these models appears more valid than the other. On the other hand, the majority of people insist that optional should be copy-assignable. We choose somewhat arbitralrily to provide a rebinding semantics for <code>std::optional</code>. This is to follow the practice adapted by <code>std::reference_wrapper</code> and <code>boost::optional</code>. In consequence, optional references are not value semantic types: <code>operator==</code> compares something else than copy assignment and constructor are copying. This should not be surprising, though, for a component that is called a "reference".</p>
+
+<p>The other semantics can be implemented by using the following idiom:</p>
+
+<pre>void assign_norebind(optional&lt;T&amp;&gt;&amp; optref, T&amp; obj)
+{
+  if (optref) *optref = obj;
+  else        optref.emplace(obj);
+}
+</pre>
+
+<h3><a name="optional_ref.rationale.rref_binding">No rvalue binding for optional references</a></h3>
+
+<p>Optional referencs cannot provide an essential feature of native references: extending the life-time of temporaries (rvalues). Temporaries can be bound to (1) rvalue references and to (2) lvalue references to const. In order to avoid dangling reference problems we need to prevent either type of binfing to optional references. In order to prevent the former, we disallow optional rvalue references altogether. We are not aware of any practical use case for such entities. Since optional lvalue references to const appear useful, we avoid the rvalue binding problem by requiring implementations to "poison" rvalue reference constructors for optional lvalue references to const. This may appear surprising as it is inconsistent with normal (non-optional) reference behavior:</p>
+
+<pre>const int&amp; nr = int{1};           <em>// ok</em>
+optional&lt;const int&amp;&gt; or = int{1}; <em>// error: int&amp;&amp; ctor deleted</em>
+</pre>
+
+
+
+
+
+<h2><a name="implementability">Implementability</a></h2>
+
+
+<p>This proposal can be implemented as pure library extension, without any compiler magic support, in C++11. An almost full rerefence implementation of this proposal can be found at <a href="https://github.com/akrzemi1/Optional/">https://github.com/akrzemi1/Optional/</a>. Below we demonstrate how one can implement <code>optional</code>'s <code>constexpr</code> constructors to engaged and disengaged state as well as <code>constexpr</code> <code>operator*</code> for <code>TriviallyDestructible</code> <code>T</code>'s. </p>
+
+
+<pre>namespace std {
+
+#if defined NDEBUG
+# define ASSERTED_EXPRESSION(CHECK, EXPR) (EXPR)
+#else
+# define ASSERTED_EXPRESSION(CHECK, EXPR) ((CHECK) ? (EXPR) : (fail(#CHECK, __FILE__, __LINE__), (EXPR)))
+  inline void fail(const char* expr, const char* file, unsigned line) { <em>/*...*/</em> }
+#endif
+
+struct dummy_t{};
+
+template &lt;class T&gt;
+union optional_storage
+{
+  static_assert( is_trivially_destructible&lt;T&gt;::value, "" );
+
+  dummy_t dummy_;
+  T       value_;
+
+  constexpr optional_storage()            <em>// null-state ctor</em>
+    : dummy_{} {}
+
+  constexpr optional_storage(T const&amp; v)  <em>// value ctor</em>
+    : value_{v} {}
+
+  ~optional_storage() = default;          <em>// trivial dtor</em>
+};
+
+
+template &lt;class T&gt;
+<em>// requires: is_trivially_destructible&lt;T&gt;::value</em>
+class optional
+{
+  bool initialized_;
+  optional_storage&lt;T&gt; storage_;
+
+public:
+  constexpr optional(nullopt_t) : initialized_{false}, storage_{} {}
+
+  constexpr optional(T const&amp; v) : initialized_{true}, storage_{v} {}
+
+  constexpr T const&amp; operator*() 
+  {
+    return ASSERTED_EXPRESSION(bool(*this), storage_.value_);
+  }
+  
+  constexpr T const&amp; value()
+  {
+    return *this ? storage_.value_ : (throw bad_optional_access(""), storage_.value_);
+  }
+
+  <em>// ...</em>
+};
+
+} <em>// namespace std</em>
+</pre>
+
+
+
+<h2><a name="acknowledgements">Acknowledgements</a></h2>
+
+
+<p>Many people from the Boost community, participated in the developement of the Boost.Optional library. Sebastian Redl suggested the usage of function <code>emplace</code>. </p>
+
+<p>Daniel Krügler provided numerous helpful suggestions, corrections and comments on this paper; in particular he suggested the addition of and reference implementation for "perfect initialization" operations.</p>
+
+<p>Tony Van Eerd offered many useful suggestions and corrections to the proposal.</p>
+
+<p>People in discussion group "ISO C++ Standard - Future Proposals" provided numerous insightful suggestions: Vladimir Batov (who described and supported the perfect forwarding constructor), Nevin Liber, Ville Voutilainen, Richard Smiths, Dave Abrahams, Chris Jefferson, Jeffrey Yasskin, Nikolay Ivchenkov, Matias Capeletto, Olaf van der Spek, Vincent Jacquet, Kazutoshi Satoda, Vicente J. Botet Escriba, Róbert Dávid, Vincent Jacquet, Luc Danton, Greg Marr, and many more. </p>
+
+<p>Joe Gottman suggested the support for hashing some optional objects.</p>
+
+<p>Nicol Bolas suggested to make <code>operator-&gt;</code> conditionally <code>constexpr</code> based on whether <code>T::operator&amp;</code> is overloaded.</p>
+
+
+
+<h2><a name="literature">References</a></h2>
+
+
+<ol>
+<li>John J. Barton, Lee R. Nackman, "Scientific and Engineering C++: An Introduction with Advanced Techniques and Examples".</li>
+
+<li>Fernando Cacciola, Boost.Optional library (<a href="http://www.boost.org/doc/libs/1_49_0/libs/optional/doc/html/index.html">http://www.boost.org/doc/libs/1_49_0/libs/optional/doc/html/index.html</a>)</li>
+
+<li>MSDN Library, "Nullable Types (C# Programming Guide)", (<a href="http://msdn.microsoft.com/en-us/library/1t3y8s4s.aspx">http://msdn.microsoft.com/en-us/library/1t3y8s4s.aspx</a></li>
+
+<li>Code Synthesis Tools, "C++ Object Persistence with ODB", (<a href="http://www.codesynthesis.com/products/odb/doc/manual.xhtml#7.3">http://www.codesynthesis.com/products/odb/doc/manual.xhtml#7.3</a>)</li>
+
+<li>Jaakko Järvi, Boost Tuple Library (<a href="http://www.boost.org/doc/libs/1_49_0/libs/tuple/doc/tuple_users_guide.html">http://www.boost.org/doc/libs/1_49_0/libs/tuple/doc/tuple_users_guide.html</a>) </li>
+
+<li>Alisdair Meredith, John Lakos, "<code>noexcept</code> Prevents Library Validation" (N3248, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3248.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2011/n3248.pdf</a>)</li>
+
+<li>Walter E. Brown, "A Preliminary Proposal for a Deep-Copying Smart Pointer" (N3339, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3339.pdf">http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2012/n3339.pdf</a>)</li>
+
+<li>Andrzej Krzemie&#324;ski, Optional library implementation in C++11 (<a href="https://github.com/akrzemi1/Optional/">https://github.com/akrzemi1/Optional/</a>)</li>
+</ol>
+
+
+
+  
+
+
+
+</body></html>
