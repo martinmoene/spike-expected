@@ -1,7 +1,7 @@
-expected<T>
+expected\<T\>
 ===========
 
-Variations on Expected<T> by Andrei Alexandrescu.
+Variations on Expected\<T\> by Andrei Alexandrescu.
 
 * Fernando Cacciola and Andrzej Krzemieński. [A proposal to add a utility class to represent optional objects (Revision 4)](http://isocpp.org/files/papers/N3672.html). ISO/IEC JTC1 SC22 WG21 N3672 2013-04-19.
 
