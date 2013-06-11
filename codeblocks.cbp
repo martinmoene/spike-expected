@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="expected" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="default">
+				<Option output="expected" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+		</Build>
+		<Unit filename="README.md" />
+		<Unit filename="alexandrescu/expected.h" />
+		<Unit filename="alexandrescu/test_expected.cpp" />
+		<Unit filename="exception_nonc++11.h" />
+		<Unit filename="exception_ptr_lite.h" />
+		<Unit filename="expected-lite.IN.hpp" />
+		<Unit filename="expected-lite.hpp" />
+		<Unit filename="expected.hpp" />
+		<Unit filename="moene/expected.h" />
+		<Unit filename="moene/test_expected.cpp" />
+		<Unit filename="nonco/expected.h" />
+		<Unit filename="nonco/test_expected.cpp" />
+		<Unit filename="static_visitor.h" />
+		<Unit filename="std_optional/optional.hpp" />
+		<Unit filename="test_expected_lite.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
