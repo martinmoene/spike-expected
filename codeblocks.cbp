@@ -32,6 +32,7 @@
 		<Unit filename="std_optional/n3527-std_optional_r4.html" />
 		<Unit filename="std_optional/n3527-std_optional_r4.pdf" />
 		<Unit filename="std_optional/optional.hpp" />
+		<Unit filename="std_optional/test_optional.cpp" />
 		<Unit filename="test_expected_lite.cpp" />
 		<Extensions>
 			<code_completion />
