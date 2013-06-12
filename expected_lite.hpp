@@ -19,7 +19,7 @@
 #include <utility>      // std::swap()
 
 #if __cplusplus < 201103L       // non-C++11 compilers
-# include "exception_c++11.hpp"   // std::exception_ptr, std::move()
+# include "exception_c++11.hpp" // std::exception_ptr, std::move()
 #endif
 
 namespace nonstd {
@@ -215,22 +215,26 @@ public:
 
     value_type const * operator ->() const
     {
-        return has_value ? storage.value_ptr() : ( std::rethrow_exception( storage.error() ), storage.value_ptr() );
+        assert( has_value );
+        return storage.value_ptr();
     }
 
     value_type * operator ->()
     {
-        return has_value ? storage.value_ptr() : ( std::rethrow_exception( storage.error() ), storage.value_ptr() );
+        assert( has_value );
+        return storage.value_ptr();
     }
 
     value_type const & operator *() const
     {
-        return has_value ? * storage.value_ptr() : ( std::rethrow_exception( storage.error() ), * storage.value_ptr() );
+        assert( has_value );
+        return storage.value();
     }
 
     value_type & operator *()
     {
-        return has_value ? * storage.value_ptr() : ( std::rethrow_exception( storage.error() ), * storage.value_ptr() );
+        assert( has_value );
+        return storage.value();
     }
 
     operator safe_bool() const
@@ -240,18 +244,18 @@ public:
 
     value_type const & value() const
     {
-        return **this;
+        return has_value ? storage.value() : ( std::rethrow_exception( storage.error() ), storage.value() );
     }
 
     value_type & value()
     {
-        return **this;
+        return has_value ? storage.value() : ( std::rethrow_exception( storage.error() ), storage.value() );
     }
 
     template <typename V>
     value_type value_or( V const & v ) const
     {
-        return *this ? **this : v;
+        return has_value ? **this : v;
     }
 
     error_type const & error() const

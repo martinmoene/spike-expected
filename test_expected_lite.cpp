@@ -55,10 +55,9 @@ int main()
 
         expected<int> ek( 99 );
         std::cout << "ek   : " << *ek << std::endl;
-#ifdef NONSTD_EXPECTED_DEFINE_ASSIGNMENT
+
         ek = ei;
         std::cout << "ek=ei: " << *(ek = ei) << std::endl;
-#endif
 
 // checked access to contained error:
 //        std::exception_ptr p = ei.error();
@@ -71,7 +70,7 @@ int main()
         assert( ! !!ee1 );
         std::cout << "ee1.value_or(22): " << ee1.value_or(22) << std::endl;
 
-        int & x = *ee1;
+        int & x = ee1.value();
     }
     catch ( std::runtime_error const & e )
     {
