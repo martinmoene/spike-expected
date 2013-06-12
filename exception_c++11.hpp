@@ -15,7 +15,7 @@
 
 #if __cplusplus < 201103L && ! defined( STD11_EXCPT__HAS_STD_EXCEPTION_PTR )
 
-#include "exception_ptr_lite.h"
+#include "exception_ptr_lite.hpp"
 
 namespace std {
 

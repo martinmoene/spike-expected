@@ -19,7 +19,7 @@
 #include <utility>      // std::swap()
 
 #if __cplusplus < 201103L       // non-C++11 compilers
-# include "exception_c++11.h"   // std::exception_ptr, std::move()
+# include "exception_c++11.hpp"   // std::exception_ptr, std::move()
 #endif
 
 namespace nonstd {

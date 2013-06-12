@@ -18,8 +18,8 @@
 		<Unit filename="alexandrescu/example.cpp" />
 		<Unit filename="alexandrescu/expected.h" />
 		<Unit filename="alexandrescu/test_expected.cpp" />
-		<Unit filename="exception_c++11.h" />
-		<Unit filename="exception_ptr_lite.h" />
+		<Unit filename="exception_c++11.hpp" />
+		<Unit filename="exception_ptr_lite.hpp" />
 		<Unit filename="expected_lite.hpp" />
 		<Unit filename="moene/expected.h" />
 		<Unit filename="moene/test_expected.cpp" />
