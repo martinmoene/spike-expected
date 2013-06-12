@@ -37,6 +37,10 @@ int main()
         expected<int> ei = 33;
         std::cout << "ei-33: " << *ei << std::endl;
 
+// safe bool conversion:
+//        ei << 1;
+//        int i = ei;
+
         int a = ei.value();
         int & b = ei.value();
         int & c = *ei;
@@ -52,6 +56,8 @@ int main()
         ek = ei;
         std::cout << "ek=ei: " << *(ek = ei) << std::endl;
 #endif
+
+// checked access to contained error:
 //        std::exception_ptr p = ei.error();
 
         expected< S > es1 ( S("es1") );

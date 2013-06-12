@@ -126,6 +126,9 @@ const struct nullexp_t {} nullexp;
 template <typename T, typename E = std::exception_ptr>
 class expected
 {
+    typedef void (expected::*safe_bool)() const;
+    void this_type_does_not_support_comparisons() const {}
+
 public:
     typedef T value_type;
     typedef E error_type;
@@ -230,9 +233,9 @@ public:
         return has_value ? * storage.value_ptr() : ( std::rethrow_exception( storage.error() ), * storage.value_ptr() );
     }
 
-    /*explicit*/ operator bool() const
+    operator safe_bool() const
     {
-        return has_value;
+        return has_value ? &expected::this_type_does_not_support_comparisons : 0;
     }
 
     value_type const & value() const
