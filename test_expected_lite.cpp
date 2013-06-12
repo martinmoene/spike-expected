@@ -17,74 +17,142 @@
 #include <stdexcept>
 #include <string>
 
-struct S
-{
-    S(std::string n) : n(n)     { std::cout << n << ": S()" << std::endl; }
-    S(S const & r) : n(r.n+"@") { std::cout << n << ": S(S const &)" << std::endl; }
-   ~S()                         { std::cout << n << ": ~S()" << std::endl; }
-
-   const std::string n;
+struct caller {
+    template <class T> caller(T fun) { fun(); }
 };
+# define CAT2(X, Y) X ## Y
+# define CAT(X, Y) CAT2(X, Y)
+# define TEST(NAME) caller CAT(__VAR, __LINE__) = []
+
+enum  State
+{
+    sDefaultConstructed,
+    sValueCopyConstructed,
+    sValueMoveConstructed,
+    sCopyConstructed,
+    sMoveConstructed,
+    sMoveAssigned,
+    sCopyAssigned,
+    sValueCopyAssigned,
+    sValueMoveAssigned,
+    sMovedFrom,
+    sValueConstructed
+};
+
+struct OracleVal
+{
+    State s;
+    int i;
+    OracleVal(int i = 0) : s(sValueConstructed), i(i) {}
+
+    bool operator==( OracleVal const & other ) const { return s==other.s && i==other.i; }
+};
+
+struct Oracle
+{
+    State s;
+    OracleVal val;
+
+    Oracle() : s(sDefaultConstructed) {}
+    Oracle(const OracleVal& v) : s(sValueCopyConstructed), val(v) {}
+    Oracle(OracleVal&& v) : s(sValueMoveConstructed), val(std::move(v)) {v.s = sMovedFrom;}
+    Oracle(const Oracle& o) : s(sCopyConstructed), val(o.val) {}
+    Oracle(Oracle&& o) : s(sMoveConstructed), val(std::move(o.val)) {o.s = sMovedFrom;}
+
+    Oracle& operator=(const OracleVal& v) { s = sValueCopyConstructed; val = v; return *this; }
+    Oracle& operator=(OracleVal&& v) { s = sValueMoveConstructed; val = std::move(v); v.s = sMovedFrom; return *this; }
+    Oracle& operator=(const Oracle& o) { s = sCopyConstructed; val = o.val; return *this; }
+    Oracle& operator=(Oracle&& o) { s = sMoveConstructed; val = std::move(o.val); o.s = sMovedFrom; return *this; }
+
+    bool operator==( Oracle const & other ) const { return s == other.s && val == other.val;}
+};
+
+namespace ns = nonstd;
+
+TEST(disengaged_ctor)
+{
+    ns::expected<int> o1;
+    assert (!o1);
+
+    ns::expected<int> o2 = ns::nullexp;
+    assert (!o2);
+
+    ns::expected<int> o3 = o2;
+    assert (!o3);
+
+    assert (o1 == ns::nullexp);
+    assert (o1 == ns::expected<int>{} );
+    assert (!o1);
+    assert (bool(o1) == false);
+
+    assert (o2 == ns::nullexp);
+    assert (o2 == ns::expected<int>{});
+    assert (!o2);
+    assert (bool(o2) == false);
+
+    assert (o3 == ns::nullexp);
+    assert (o3 == ns::expected<int>{});
+    assert (!o3);
+    assert (bool(o3) == false);
+
+    assert (o1 == o2);
+    assert (o2 == o1);
+    assert (o1 == o3);
+    assert (o3 == o1);
+    assert (o2 == o3);
+    assert (o3 == o2);
+};
+
+TEST(value_ctor)
+{
+  OracleVal v;
+  ns::expected<Oracle> oo1(v);
+  assert (oo1 != ns::nullexp);
+  assert (oo1 != ns::expected<Oracle>{});
+  assert (oo1 == ns::expected<Oracle>{v});
+  assert (!!oo1);
+  assert (bool(oo1));
+  // NA: assert (oo1->s == sValueCopyConstructed);
+  assert (oo1->s == sMovedFrom);
+//  assert (oo1->s == sMoveConstructed);
+  assert (v.s == sValueConstructed);
+
+//  ns::expected<Oracle> oo2(std::move(v));
+//  assert (oo2 != ns::nullexp);
+//  assert (oo2 != ns::expected<Oracle>{});
+//  assert (oo2 == oo1);
+//  assert (!!oo2);
+//  assert (bool(oo2));
+//  // NA: assert (oo2->s == sValueMoveConstructed);
+//  assert (oo2->s == sMoveConstructed);
+//  assert (v.s == sMovedFrom);
+
+  {
+      OracleVal v;
+//      ns::expected<Oracle> oo1{ns::emplace, v};
+      ns::expected<Oracle> oo1{v};
+      assert (oo1 != ns::nullexp);
+      assert (oo1 != ns::expected<Oracle>{});
+      assert (oo1 == ns::expected<Oracle>{v});
+      assert (!!oo1);
+      assert (bool(oo1));
+      assert (oo1->s == sValueCopyConstructed);
+      assert (v.s == sValueConstructed);
+
+//      ns::expected<Oracle> oo2{ns::emplace, std::move(v)};
+//      assert (oo2 != ns::nullexp);
+//      assert (oo2 != ns::expected<Oracle>{});
+//      assert (oo2 == oo1);
+//      assert (!!oo2);
+//      assert (bool(oo2));
+//      assert (oo2->s == sValueMoveConstructed);
+//      assert (v.s == sMovedFrom);
+  }
+};
+
 
 int main()
 {
-    using namespace nonstd;
-
-    try
-    {
-        expected<int> e;
-        std::cout << "e.error(): " << e.error() << std::endl;
-        e = 1;
-        std::cout << "e-1: " << *e << std::endl;
-
-        expected<int> ei = 33;
-        std::cout << "ei-33: " << *ei << std::endl;
-
-// safe bool conversion:
-//        ei << 1;
-//        int i = ei;
-
-        int a = ei.value();
-        int & b = ei.value();
-        int & c = *ei;
-        std::cout << "ei.value_or(22): " << ei.value_or(22) << std::endl;
-
-        b = 77;
-        std::cout << "ei-77: " << *ei << std::endl;
-        std::cout << "c    : " << *ei << std::endl;
-
-        expected<int> ek( 99 );
-        std::cout << "ek   : " << *ek << std::endl;
-
-        ek = ei;
-        std::cout << "ek=ei: " << *(ek = ei) << std::endl;
-
-// checked access to contained error:
-//        std::exception_ptr p = ei.error();
-
-        expected< S > es1 ( S("es1") );
-        expected< S > es2 = S("es2");
-
-        expected<int> ee1 ( nullexp, std::make_exception_ptr( std::runtime_error("ee1") ) );
-
-        assert( ! !!ee1 );
-        std::cout << "ee1.value_or(22): " << ee1.value_or(22) << std::endl;
-
-        int & x = ee1.value();
-    }
-    catch ( std::runtime_error const & e )
-    {
-        std::cout << "std::runtime_error: " << e.what() << std::endl;
-    }
-    catch ( std::exception const & e )
-    {
-        std::cout << "std::exception: " << e.what() << std::endl;
-    }
-    catch (...)
-    {
-        assert( false );
-    }
-
     return 0; // VC6
 }
 

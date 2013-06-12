@@ -14,6 +14,8 @@
 #ifndef NONSTD_EXPECTED_LITE_HPP
 #define NONSTD_EXPECTED_LITE_HPP
 
+#include <cassert>      // assert()
+#include <functional>   // std::less<>
 #include <new>          // placement new
 #include <stdexcept>    // std:logic_error
 #include <utility>      // std::swap()
@@ -126,53 +128,90 @@ const struct nullexp_t {} nullexp;
 template <typename T, typename E = std::exception_ptr>
 class expected
 {
-    typedef void (expected::*safe_bool)() const;
-    void this_type_does_not_support_comparisons() const {}
-
 public:
     typedef T value_type;
     typedef E error_type;
 
+private:
+    typedef void (expected::*safe_bool)() const;
+    void this_type_does_not_support_comparisons() const {}
+
+    bool initialized() const
+    {
+        return has_value;
+    }
+
+    void clear()
+    {
+        if ( initialized() )
+            contained.destruct_value();
+
+        has_value = false;
+    }
+
+    template <typename V>
+    void initialize( V const & v )
+    {
+        assert( ! has_value );
+        contained.construct_value( v );
+        has_value = true;
+    }
+
+public:
     // constructors
 
     expected()
     : has_value( false )
     {
-        storage.construct_error( std::exception_ptr() );
+        contained.construct_error( std::exception_ptr() );
+    }
+
+    expected( nullexp_t )
+    : has_value( false )
+    {
+        contained.construct_error( std::exception_ptr() );
     }
 
     expected( value_type const & rhs )
     : has_value( true )
     {
-        storage.construct_value( rhs );
+        contained.construct_value( rhs );
     }
 
     expected( nullexp_t, error_type const & rhs )
     : has_value( false )
     {
-        storage.construct_error( rhs );
+        contained.construct_error( rhs );
     }
 
     expected( expected const & rhs )
     : has_value( rhs.has_value )
     {
-        if ( has_value ) storage.construct_value( rhs.storage.value() );
-        else             storage.construct_error( rhs.storage.error() );
+        if ( has_value ) contained.construct_value( rhs.contained.value() );
+        else             contained.construct_error( rhs.contained.error() );
     }
 
     // destructor
 
     ~expected()
     {
-        if ( has_value ) storage.destruct_value();
-        else             storage.destruct_error();
+        if ( has_value ) contained.destruct_value();
+        else             contained.destruct_error();
     }
 
     // assignment
 
-    expected & operator =( expected rhs )
+    expected & operator =( nullexp_t )
     {
-        rhs.swap( *this );
+        clear();
+        return *this;
+    }
+
+    expected & operator =( expected const & rhs )
+    {
+        if      ( initialized() == true  && rhs.initialized() == false ) clear();
+        else if ( initialized() == false && rhs.initialized() == true  ) initialize(*rhs);
+        else if ( initialized() == true  && rhs.initialized() == true  ) contained.value() = *rhs;
         return *this;
     }
 
@@ -182,18 +221,23 @@ public:
     {
         using std::swap;
 
+        if      ( initialized() == true  && rhs.initialized() == false ) { rhs.initialize(**this); clear(); }
+        else if ( initialized() == false && rhs.initialized() == true  ) { initialize(*rhs);   rhs.clear(); }
+        else if ( initialized() == true  && rhs.initialized() == true  ) { swap(**this, *rhs);              }
+
+#if 0
         if ( has_value )
         {
             if ( rhs.has_value )
             {
-                swap( storage.value(), rhs.storage.value() );
+                swap( contained.value(), rhs.contained.value() );
             }
             else
             {
-                error_type t = rhs.storage.error();
+                error_type t = rhs.contained.error();
 
-                rhs.storage.construct_value( value() );
-                storage.construct_error( t );
+                rhs.contained.construct_value( value() );
+                contained.construct_error( t );
 
                 swap( has_value, rhs.has_value );
             }
@@ -206,9 +250,10 @@ public:
             }
             else
             {
-                swap( storage.error(), rhs.storage.error() );
+                swap( contained.error(), rhs.contained.error() );
             }
         }
+#endif
     }
 
     // observers
@@ -216,25 +261,25 @@ public:
     value_type const * operator ->() const
     {
         assert( has_value );
-        return storage.value_ptr();
+        return contained.value_ptr();
     }
 
     value_type * operator ->()
     {
         assert( has_value );
-        return storage.value_ptr();
+        return contained.value_ptr();
     }
 
     value_type const & operator *() const
     {
         assert( has_value );
-        return storage.value();
+        return contained.value();
     }
 
     value_type & operator *()
     {
         assert( has_value );
-        return storage.value();
+        return contained.value();
     }
 
     operator safe_bool() const
@@ -244,12 +289,12 @@ public:
 
     value_type const & value() const
     {
-        return has_value ? storage.value() : ( std::rethrow_exception( storage.error() ), storage.value() );
+        return has_value ? contained.value() : ( std::rethrow_exception( contained.error() ), contained.value() );
     }
 
     value_type & value()
     {
-        return has_value ? storage.value() : ( std::rethrow_exception( storage.error() ), storage.value() );
+        return has_value ? contained.value() : ( std::rethrow_exception( contained.error() ), contained.value() );
     }
 
     template <typename V>
@@ -260,32 +305,209 @@ public:
 
     error_type const & error() const
     {
-        return has_value ? (throw nonstd::bad_expected_access("expected: no contained error"), storage.error() ) : storage.error();
+        return has_value ? (throw nonstd::bad_expected_access("expected: no contained error"), contained.error() ) : contained.error();
     }
 
 private:
     bool has_value;
-    storage_t<T,E> storage;
+    storage_t<T,E> contained;
 };
 
 // Relational operators
 
-template <typename T, typename E> bool operator==(const expected<T,E>&, const expected<T,E>&);
-template <typename T, typename E> bool operator<(const expected<T,E>&, const expected<T,E>&);
+template <typename T, typename E>
+bool operator==( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return bool(x) != bool(y) ? false : bool(x) == false ? true : *x == *y;
+}
+
+template <typename T, typename E>
+bool operator!=( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return !(x == y);
+}
+
+template <typename T, typename E>
+bool operator<( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return (!y) ? false : (!x) ? true : std::less<T>()( *x, *y );
+//  return (!y) ? false : (!x) ? true : *x < *y;
+
+}
+
+template <typename T, typename E>
+bool operator>( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return (y < x);
+}
+
+template <typename T, typename E>
+bool operator<=( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return !(y < x);
+}
+
+template <typename T, typename E>
+bool operator>=( expected<T,E> const & x, expected<T,E> const & y )
+{
+  return !(x < y);
+}
 
 // Comparison with nullexp
 
-template <typename T, typename E> bool operator==(const expected<T,E>&, nullexp_t);
-template <typename T, typename E> bool operator==(nullexp_t, const expected<T,E>&);
-template <typename T, typename E> bool operator<(const expected<T,E>&, nullexp_t);
-template <typename T, typename E> bool operator<(nullexp_t, const expected<T,E>&);
+template <typename T, typename E>
+bool operator==( expected<T,E> const & x, nullexp_t )
+{
+  return (!x);
+}
+
+template <typename T, typename E>
+bool operator==( nullexp_t, expected<T,E> const & x )
+{
+  return (!x);
+}
+
+template <typename T, typename E>
+bool operator!=( expected<T,E> const & x, nullexp_t )
+{
+  return bool(x);
+}
+
+template <typename T, typename E>
+bool operator!=( nullexp_t, expected<T,E> const & x )
+{
+  return bool(x);
+}
+
+template <typename T, typename E>
+bool operator<( expected<T,E> const &, nullexp_t )
+{
+  return false;
+}
+
+template <typename T, typename E>
+bool operator<( nullexp_t, expected<T,E> const & x )
+{
+  return bool(x);
+}
+
+template <typename T, typename E>
+bool operator<=( expected<T,E> const & x, nullexp_t )
+{
+  return (!x);
+}
+
+template <typename T, typename E>
+bool operator<=( nullexp_t, expected<T,E> const & )
+{
+  return true;
+}
+
+template <typename T, typename E>
+bool operator>( expected<T,E> const & x, nullexp_t )
+{
+  return bool(x);
+}
+
+template <typename T, typename E>
+bool operator>( nullexp_t, expected<T,E> const & )
+{
+  return false;
+}
+
+template <typename T, typename E>
+bool operator>=( const expected<T,E>&, nullexp_t )
+{
+  return true;
+}
+
+template <typename T, typename E>
+bool operator>=( nullexp_t, expected<T,E> const & x )
+{
+  return (!x);
+}
 
 // Comparison with T
 
-template <typename T, typename E> bool operator==(const expected<T,E>&, const T&);
-template <typename T, typename E> bool operator==(const T&, const expected<T,E>&);
-template <typename T, typename E> bool operator<(const expected<T,E>&, const T&);
-template <typename T, typename E> bool operator<(const T&, const expected<T,E>&);
+template <typename T, typename E>
+bool operator==( expected<T,E> const & x, T const & v )
+{
+  return bool(x) ? *x == v : false;
+}
+
+template <typename T, typename E>
+bool operator==(T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? v == *x : false;
+}
+
+template <typename T, typename E>
+bool operator!=( expected<T,E> const & x, T const & v )
+{
+  return bool(x) ? *x != v : true;
+}
+
+template <typename T, typename E>
+bool operator!=( T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? v != *x : true;
+}
+
+template <typename T, typename E>
+bool operator<( expected<T,E> const & x, T const & v )
+{
+//  return bool(x) ? *x < v : true;
+  return bool(x) ? std::less<T>()( *x, v ) : true;
+}
+
+template <typename T, typename E>
+bool operator>( T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? std::greater<T>()( v, *x ) : true;
+//  return bool(x) ? v > *x : true;
+}
+
+template <typename T, typename E>
+bool operator>( expected<T,E> const & x, T const & v )
+{
+  return bool(x) ? std::greater<T>()( *x, v ) : false;
+//  return bool(x) ? *x > v : false;
+}
+
+template <typename T, typename E>
+bool operator<( T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? std::less<T>()( v, *x ) : false;
+//  return bool(x) ? v < *x : false;
+}
+
+template <typename T, typename E>
+bool operator>=( expected<T,E> const & x, T const & v )
+{
+  return bool(x) ? std::greater_equal<T>()( *x, v ): false;
+//  return bool(x) ? *x >= v : false;
+}
+
+template <typename T, typename E>
+bool operator<=( T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? std::less_equal<T>()( v, *x ) : false;
+//  return bool(x) ? v <= *x : false;
+}
+
+template <typename T, typename E>
+bool operator<=( expected<T,E> const & x, T const & v )
+{
+  return bool(x) ? std::less_equal<T>()( *x, v ) : true;
+//  return bool(x) ? *x <= v : true;
+}
+
+template <typename T, typename E>
+bool operator>=( T const & v, expected<T,E> const & x )
+{
+  return bool(x) ? std::less_equal<T>()( *x, v ) : true;
+//  return bool(x) ? *x <= v : true;
+}
 
 // Specialized algorithms
 
