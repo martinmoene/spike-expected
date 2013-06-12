@@ -1,19 +1,19 @@
+// Copyright (C) 2013 Martin Moene <martin.moene@gmail.com>
 //
-// expected - variations on Expected<T> by Andrei Alexandrescu.
-//
-// Written in 2013 by Martin Moene <martin.moene@gmail.com>
-//
+// Use, modification, and distribution is subject to the Boost Software
+// License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef STD_EXCEPTION_CPP11_H_INCLUDED
-#define STD_EXCEPTION_CPP11_H_INCLUDED
+#ifndef STD11_EXCEPTION_CPP11_H_INCLUDED
+#define STD11_EXCEPTION_CPP11_H_INCLUDED
 
 // VC2010+
 #if defined( _MSC_VER ) && ( _MSC_VER >= 1600 )
-# define COMPILER_IS_MSVC2010
-# define HAS_STD_EXCEPTION_PTR
+# define STD11_EXCPT__HAS_STD_EXCEPTION_PTR
+# define STD11_EXCPT__DEFINE_STD_MAKE_EXCEPTION_PTR
 #endif
 
-#if __cplusplus < 201103L && ! defined( HAS_STD_EXCEPTION_PTR )
+#if __cplusplus < 201103L && ! defined( STD11_EXCPT__HAS_STD_EXCEPTION_PTR )
 
 #include "exception_ptr_lite.h"
 
@@ -37,7 +37,8 @@ inline T & move( T & rhs )
 
 // Special cases:
 
-#ifdef COMPILER_IS_MSVC2010
+#ifdef STD11_EXCPT__DEFINE_STD_MAKE_EXCEPTION_PTR
+
 namespace std {
 
 template <typename E>
@@ -56,9 +57,9 @@ make_exception_ptr( E const & e )
 
 } // namespace std
 
-#endif // COMPILER_IS_MSVC2010
+#endif // STD11_EXCPT__DEFINE_STD_MAKE_EXCEPTION_PTR
 
-#undef HAS_STD_EXCEPTION_PTR
-#undef COMPILER_IS_MSVC2010
+#undef STD11_EXCPT__DEFINE_STD_MAKE_EXCEPTION_PTR
+#undef STD11_EXCPT__HAS_STD_EXCEPTION_PTR
 
-#endif // STD_EXCEPTION_CPP11_H_INCLUDED
+#endif // STD11_EXCEPTION_CPP11_H_INCLUDED

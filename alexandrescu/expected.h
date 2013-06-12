@@ -1,8 +1,4 @@
-//
-// expected - variations on Expected<T> by Andrei Alexandrescu.
-//
-// Written in 2013 by Martin Moene <martin.moene@gmail.com>
-//
+// Copyright (C) 2012 Andrei Alexandrescu.
 
 #ifndef NONSTD_EXPECTED_ALEXANDRESCU_H_INCLUDED
 #define NONSTD_EXPECTED_ALEXANDRESCU_H_INCLUDED
@@ -10,23 +6,14 @@
 #include <algorithm>            // std::move()
 #include <exception>            // std::exception_ptr
 
-#if __cplusplus < 201103L       // non-C++11 compilers
-# include "exception_c++11.h"   // std::exception_ptr, std::move()
-#endif
-
 template<class T>
 class Expected
 {
-#if __cplusplus >= 201103L
     union
     {
         T ham;
         std::exception_ptr spam;
     };
-#else
-    T ham;
-    std::exception_ptr spam;
-#endif
 
     bool gotHam;
 
@@ -35,19 +22,15 @@ class Expected
 public:
     ~Expected()
     {
-#if __cplusplus >= 201103L
         if ( gotHam )
             ham.~T();
         else
             spam.~exception_ptr();
-#endif
     }
 
     Expected( const T & rhs ) : ham( rhs ), gotHam( true ) {}
 
-#if __cplusplus >= 201103L
     Expected( T && rhs ) : ham( std::move( rhs ) ), gotHam( true ) {}
-#endif
 
     Expected( const Expected & rhs )
         : gotHam( rhs.gotHam )
@@ -58,7 +41,6 @@ public:
             new( &spam ) std::exception_ptr( rhs.spam );
     }
 
-#if __cplusplus >= 201103L
     Expected( Expected && rhs )
         : gotHam( rhs.gotHam )
     {
@@ -68,7 +50,6 @@ public:
             new( &spam ) std::exception_ptr( std::move( rhs.spam ) );
 
     }
-#endif
 
     void swap( Expected & rhs )
     {

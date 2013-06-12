@@ -1,18 +1,16 @@
-/*
- * exception_ptr lite
- *
- * exception_ptr, make_exception_ptr() and rethrow_exception() for C++03.
- *
- * Created on 30 May 2013 by Martin Moene.
- *
- * Note: exception_ptr lite is created to propagate exceptions via Andrei
- * Alexandrescu's excpected<T> with compilers that lack C++11's exception
- * propagation facility and doing so without adding a dependency on e.g. Boost.
- *
- * exception_ptr lite is not a full replacement of C++11's exception
- * propagation facility. Specifically std::current_exception() is missing,
- * so that you cannot intercept an exception in it's original guise.
- */
+// Copyright (C) 2013 Martin Moene <martin.moene@gmail.com>
+//
+// Use, modification, and distribution is subject to the Boost Software
+// License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+//
+// Note: exception_ptr lite is created to propagate exceptions via Andrei
+// Alexandrescu's excpected<T> with compilers that lack C++11's exception
+// propagation facility and doing so without adding a dependency on e.g. Boost.
+//
+// exception_ptr lite is not a full replacement of C++11's exception
+// propagation facility. Specifically std::current_exception() is missing,
+// so that you cannot intercept an exception in it's original guise.
 
 #ifndef STD11_EXCEPTION_PTR_LITE_H_INCLUDED
 #define STD11_EXCEPTION_PTR_LITE_H_INCLUDED
@@ -194,7 +192,7 @@ template <typename E>
 inline exception_ptr
 make_exception_ptr( E const & e )
 {
-    // no need to throw as we don't have current_exception()
+    // no need to throw as we don't have a fully implemented current_exception()
 
     return make_cloneable( e ).dynamic_clone();
 }

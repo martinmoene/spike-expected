@@ -14,7 +14,7 @@
 # include "exception_c++11.h"   // std::exception_ptr, std::move()
 #endif
 
-namespace std11
+namespace nonstd
 {
 
 struct exceptional_tag {} exceptional;
@@ -254,6 +254,6 @@ make_exceptional_expected( E const & e )
 }
 
 
-} // namespace std11
+} // namespace nonstd
 
 #endif // NONSTD_EXPECTED_MOENE_H_INCLUDED

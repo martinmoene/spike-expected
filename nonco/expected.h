@@ -1,12 +1,8 @@
-//
-// expected - variations on Expected<T> by Andrei Alexandrescu.
-//
 // Anto Nonco. Extending expected<T> to deal with references. 27 May 2013.
 // http://anto-nonco.blogspot.nl/2013/03/extending-expected-to-deal-with.html
-//
 
-#ifndef NONCO_EXPECTED_H_INCLUDED
-#define NONCO_EXPECTED_H_INCLUDED
+#ifndef NONSTD_NONCO_EXPECTED_H_INCLUDED
+#define NONSTD_NONCO_EXPECTED_H_INCLUDED
 
 #include <functional>
 #include <stdexcept>
@@ -282,4 +278,4 @@ public:
     };
 }; //expected<const T&>
 
-#endif // NONCO_EXPECTED_H_INCLUDED
+#endif // NONSTD_NONCO_EXPECTED_H_INCLUDED

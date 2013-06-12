@@ -1,8 +1,8 @@
+// Copyright (C) 2013 Martin Moene <martin.moene@gmail.com>
 //
-// expected - variations on Expected<T> by Andrei Alexandrescu.
-//
-// Written in 2013 by Martin Moene <martin.moene@gmail.com>
-//
+// Use, modification, and distribution is subject to the Boost Software
+// License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
 
 #include <iostream>
 
