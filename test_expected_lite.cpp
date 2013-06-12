@@ -11,8 +11,6 @@
 // authored by Fernando Cacciola and Andrzej Krzemienski and the
 // Boost.Expected proposal authored by Pierre Talbot.
 
-#define NONSTD_EXPECTED_DEFINE_ASSIGNMENT
-
 #include "expected_lite.hpp"
 #include <cassert>
 #include <iostream>
@@ -34,6 +32,11 @@ int main()
 
     try
     {
+        expected<int> e;
+        std::cout << "e.error(): " << e.error() << std::endl;
+        e = 1;
+        std::cout << "e-1: " << *e << std::endl;
+
         expected<int> ei = 33;
         std::cout << "ei-33: " << *ei << std::endl;
 

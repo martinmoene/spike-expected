@@ -135,6 +135,12 @@ public:
 
     // constructors
 
+    expected()
+    : has_value( false )
+    {
+        storage.construct_error( std::exception_ptr() );
+    }
+
     expected( value_type const & rhs )
     : has_value( true )
     {
@@ -164,17 +170,11 @@ public:
 
     // assignment
 
-#ifdef NONSTD_EXPECTED_DEFINE_ASSIGNMENT
-
     expected & operator =( expected rhs )
     {
         rhs.swap( *this );
         return *this;
     }
-#else
-    private: expected & operator =( expected rhs );
-    public:
-#endif // NONSTD_EXPECTED_DEFINE_ASSIGNMENT
 
     // swap
 
@@ -186,7 +186,7 @@ public:
         {
             if ( rhs.has_value )
             {
-                swap( value(), rhs.value() );
+                swap( storage.value(), rhs.storage.value() );
             }
             else
             {
@@ -263,6 +263,39 @@ private:
     bool has_value;
     storage_t<T,E> storage;
 };
+
+// Relational operators
+
+template <typename T, typename E> bool operator==(const expected<T,E>&, const expected<T,E>&);
+template <typename T, typename E> bool operator<(const expected<T,E>&, const expected<T,E>&);
+
+// Comparison with nullexp
+
+template <typename T, typename E> bool operator==(const expected<T,E>&, nullexp_t);
+template <typename T, typename E> bool operator==(nullexp_t, const expected<T,E>&);
+template <typename T, typename E> bool operator<(const expected<T,E>&, nullexp_t);
+template <typename T, typename E> bool operator<(nullexp_t, const expected<T,E>&);
+
+// Comparison with T
+
+template <typename T, typename E> bool operator==(const expected<T,E>&, const T&);
+template <typename T, typename E> bool operator==(const T&, const expected<T,E>&);
+template <typename T, typename E> bool operator<(const expected<T,E>&, const T&);
+template <typename T, typename E> bool operator<(const T&, const expected<T,E>&);
+
+// Specialized algorithms
+
+template <typename T, typename E>
+void swap( expected<T,E> & x, expected<T,E> & y)
+{
+  x.swap( y );
+}
+
+// template <typename T, typename E> expected<see below> make_optional(T&&);
+
+// hash support
+//template <typename T, typename E> struct hash;
+//template <typename T, typename E> struct hash<expected<T,E> >;
 
 } // namespace nonstd
 
