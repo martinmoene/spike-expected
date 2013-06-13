@@ -136,21 +136,16 @@ private:
     typedef void (expected::*safe_bool)() const;
     void this_type_does_not_support_comparisons() const {}
 
-    bool initialized() const
-    {
-        return has_value;
-    }
-
     void clear()
     {
-        if ( initialized() )
+        if ( has_value )
             contained.destruct_value();
 
         has_value = false;
     }
 
     template <typename V>
-    void initialize( V const & v )
+    void initialize_value( V const & v )
     {
         assert( ! has_value );
         contained.construct_value( v );
@@ -209,9 +204,9 @@ public:
 
     expected & operator =( expected const & rhs )
     {
-        if      ( initialized() == true  && rhs.initialized() == false ) clear();
-        else if ( initialized() == false && rhs.initialized() == true  ) initialize(*rhs);
-        else if ( initialized() == true  && rhs.initialized() == true  ) contained.value() = *rhs;
+        if      ( has_value == true  && rhs.has_value == false ) clear();
+        else if ( has_value == false && rhs.has_value == true  ) initialize_value(*rhs);
+        else if ( has_value == true  && rhs.has_value == true  ) contained.value() = *rhs;
         return *this;
     }
 
@@ -221,9 +216,9 @@ public:
     {
         using std::swap;
 
-        if      ( initialized() == true  && rhs.initialized() == false ) { rhs.initialize(**this); clear(); }
-        else if ( initialized() == false && rhs.initialized() == true  ) { initialize(*rhs);   rhs.clear(); }
-        else if ( initialized() == true  && rhs.initialized() == true  ) { swap(**this, *rhs);              }
+        if      ( has_value == true  && rhs.has_value == false ) { rhs.initialize_value(**this); clear(); }
+        else if ( has_value == false && rhs.has_value == true  ) { initialize_value(*rhs);   rhs.clear(); }
+        else if ( has_value == true  && rhs.has_value == true  ) { swap(**this, *rhs);              }
 
 #if 0
         if ( has_value )
