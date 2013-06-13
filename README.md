@@ -36,6 +36,10 @@ C++11 compiler support
 Other
 -----
 
+* Current C++ Standard Working Draft (june 2013). [N3690 (PDF)](http://isocpp.org/files/papers/N3690.pdf).
+
 * Herb Sutter. [Style Case Study #3: Construction Unions](http://www.gotw.ca/gotw/085.htm). GotW #85. 2009
 
 * Kevin T. Manley. [Using Constructed Types in C++ Unions](http://collaboration.cmc.ec.gc.ca/science/rpn/biblio/ddj/Website/articles/CUJ/2002/0208/manley/manley.htm). C/C++ Users Journal, 20(8), August 2002.
+
+* Programming in Lua, Section [Relational Metamethods](http://www.lua.org/pil/13.2.html).
