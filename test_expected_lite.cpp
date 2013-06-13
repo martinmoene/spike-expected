@@ -113,7 +113,7 @@ TEST(value_ctor)
   assert (!!oo1);
   assert (bool(oo1));
   // NA: assert (oo1->s == sValueCopyConstructed);
-  assert (oo1->s == sMovedFrom);
+//  assert (oo1->s == sMovedFrom);
 //  assert (oo1->s == sMoveConstructed);
   assert (v.s == sValueConstructed);
 
@@ -136,7 +136,7 @@ TEST(value_ctor)
       assert (oo1 == ns::expected<Oracle>{v});
       assert (!!oo1);
       assert (bool(oo1));
-      assert (oo1->s == sValueCopyConstructed);
+//      assert (oo1->s == sValueCopyConstructed);
       assert (v.s == sValueConstructed);
 
 //      ns::expected<Oracle> oo2{ns::emplace, std::move(v)};
@@ -150,6 +150,169 @@ TEST(value_ctor)
   }
 };
 
+TEST(value_or)
+{
+  nonstd::expected<int> oi = 1;
+  int i = oi.value_or(0);
+  assert (i == 1);
+
+  oi = nonstd::nullexp;
+  assert (oi.value_or(3) == 3);
+
+  nonstd::expected<std::string> os{"AAA"};
+  assert (os.value_or("BBB") == "AAA");
+  os = nonstd::nullexp ; // {};
+  assert (os.value_or("BBB") == "BBB");
+};
+
+TEST(mixed_order)
+{
+  using namespace nonstd;
+
+  expected<int> oN {nullexp};
+  expected<int> o0 {0};
+  expected<int> o1 {1};
+
+  assert ( (oN <   0));
+  assert ( (oN <   1));
+  assert (!(o0 <   0));
+  assert ( (o0 <   1));
+  assert (!(o1 <   0));
+  assert (!(o1 <   1));
+
+  assert (!(oN >=  0));
+  assert (!(oN >=  1));
+  assert ( (o0 >=  0));
+  assert (!(o0 >=  1));
+  assert ( (o1 >=  0));
+  assert ( (o1 >=  1));
+
+  assert (!(oN >   0));
+  assert (!(oN >   1));
+  assert (!(o0 >   0));
+  assert (!(o0 >   1));
+  assert ( (o1 >   0));
+  assert (!(o1 >   1));
+
+  assert ( (oN <=  0));
+  assert ( (oN <=  1));
+  assert ( (o0 <=  0));
+  assert ( (o0 <=  1));
+  assert (!(o1 <=  0));
+  assert ( (o1 <=  1));
+
+  assert ( (0 >  oN));
+  assert ( (1 >  oN));
+  assert (!(0 >  o0));
+  assert ( (1 >  o0));
+  assert (!(0 >  o1));
+  assert (!(1 >  o1));
+
+  assert (!(0 <= oN));
+  assert (!(1 <= oN));
+  assert ( (0 <= o0));
+  assert (!(1 <= o0));
+  assert ( (0 <= o1));
+  assert ( (1 <= o1));
+
+  assert (!(0 <  oN));
+  assert (!(1 <  oN));
+  assert (!(0 <  o0));
+  assert (!(1 <  o0));
+  assert ( (0 <  o1));
+  assert (!(1 <  o1));
+
+  assert ( (0 >= oN));
+  assert ( (1 >= oN));
+  assert ( (0 >= o0));
+  assert ( (1 >= o0));
+  assert (!(0 >= o1));
+  assert ( (1 >= o1));
+};
+
+struct BadRelops
+{
+  int i;
+};
+
+constexpr bool operator<(BadRelops a, BadRelops b) { return a.i < b.i; }
+constexpr bool operator>(BadRelops a, BadRelops b) { return a.i < b.i; } // intentional error!
+
+TEST(bad_relops)
+{
+  using namespace nonstd;
+  BadRelops a{1}, b{2};
+  assert (a < b);
+  assert (a > b);
+
+  expected<BadRelops> oa = a, ob = b;
+  assert (oa < ob);
+  assert (!(oa > ob));
+
+  assert (oa < b);
+  assert (oa > b);
+
+//  expected<BadRelops&> ra = a, rb = b;
+//  assert (ra < rb);
+//  assert (!(ra > rb));
+//
+//  assert (ra < b);
+//  assert (ra > b);
+};
+
+//
+//TEST(mixed_equality)
+//{
+//  using namespace nonstd;
+//
+//  assert (make_expected(0) == 0);
+//  assert (make_expected(1) == 1);
+//  assert (make_expected(0) != 1);
+//  assert (make_expected(1) != 0);
+//
+//  expected<int> oN {nullexp};
+//  expected<int> o0 {0};
+//  expected<int> o1 {1};
+//
+//  assert (o0 ==  0);
+//  assert ( 0 == o0);
+//  assert (o1 ==  1);
+//  assert ( 1 == o1);
+//  assert (o1 !=  0);
+//  assert ( 0 != o1);
+//  assert (o0 !=  1);
+//  assert ( 1 != o0);
+//
+//  assert ( 1 != oN);
+//  assert ( 0 != oN);
+//  assert (oN !=  1);
+//  assert (oN !=  0);
+//  assert (!( 1 == oN));
+//  assert (!( 0 == oN));
+//  assert (!(oN ==  1));
+//  assert (!(oN ==  0));
+//
+//  std::string cat{"cat"}, dog{"dog"};
+//  expected<std::string> oNil{}, oDog{"dog"}, oCat{"cat"};
+//
+//  assert (oCat ==  cat);
+//  assert ( cat == oCat);
+//  assert (oDog ==  dog);
+//  assert ( dog == oDog);
+//  assert (oDog !=  cat);
+//  assert ( cat != oDog);
+//  assert (oCat !=  dog);
+//  assert ( dog != oCat);
+//
+//  assert ( dog != oNil);
+//  assert ( cat != oNil);
+//  assert (oNil !=  dog);
+//  assert (oNil !=  cat);
+//  assert (!( dog == oNil));
+//  assert (!( cat == oNil));
+//  assert (!(oNil ==  dog));
+//  assert (!(oNil ==  cat));
+//};
 
 int main()
 {
