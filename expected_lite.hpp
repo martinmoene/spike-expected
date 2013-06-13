@@ -128,9 +128,9 @@ const struct nullexp_t {} nullexp;
 template <typename T, typename E = std::exception_ptr>
 class expected
 {
-public:
-    typedef T value_type;
-    typedef E error_type;
+private:
+    bool has_value;
+    storage_t<T,E> contained;
 
 private:
     typedef void (expected::*safe_bool)() const;
@@ -139,8 +139,10 @@ private:
     void clear()
     {
         if ( has_value )
+        {
             contained.destruct_value();
-
+            contained.construct_error( std::exception_ptr() );
+        }
         has_value = false;
     }
 
@@ -153,6 +155,9 @@ private:
     }
 
 public:
+    typedef T value_type;
+    typedef E error_type;
+
     // constructors
 
     expected()
@@ -196,17 +201,15 @@ public:
 
     // assignment
 
-    expected & operator =( nullexp_t )
+    expected & operator=( nullexp_t )
     {
         clear();
         return *this;
     }
 
-    expected & operator =( expected const & rhs )
+    expected & operator=( expected rhs )
     {
-        if      ( has_value == true  && rhs.has_value == false ) clear();
-        else if ( has_value == false && rhs.has_value == true  ) initialize_value(*rhs);
-        else if ( has_value == true  && rhs.has_value == true  ) contained.value() = *rhs;
+        rhs.swap( *this );
         return *this;
     }
 
@@ -216,9 +219,15 @@ public:
     {
         using std::swap;
 
-        if      ( has_value == true  && rhs.has_value == false ) { rhs.initialize_value(**this); clear(); }
-        else if ( has_value == false && rhs.has_value == true  ) { initialize_value(*rhs);   rhs.clear(); }
-        else if ( has_value == true  && rhs.has_value == true  ) { swap(**this, *rhs);              }
+        if      ( has_value == true  && rhs.has_value == true  ) { swap( contained.value(), rhs.contained.value() ); }
+        else if ( has_value == false && rhs.has_value == false ) { swap( contained.error(), rhs.contained.error() ); }
+        else if ( has_value == false && rhs.has_value == true  ) { rhs.swap( *this ); }
+        else if ( has_value == true  && rhs.has_value == false ) { error_type t = rhs.contained.error();
+                                                                   rhs.contained.destruct_error();
+                                                                   rhs.contained.construct_value( contained.value() );
+                                                                   contained.construct_error( t );
+                                                                   swap( has_value, rhs.has_value );
+                                                                 }
 
 #if 0
         if ( has_value )
@@ -231,7 +240,8 @@ public:
             {
                 error_type t = rhs.contained.error();
 
-                rhs.contained.construct_value( value() );
+                rhs.contained.destruct_error();
+                rhs.contained.construct_value( contained.value() );
                 contained.construct_error( t );
 
                 swap( has_value, rhs.has_value );
@@ -302,10 +312,6 @@ public:
     {
         return has_value ? (throw nonstd::bad_expected_access("expected: no contained error"), contained.error() ) : contained.error();
     }
-
-private:
-    bool has_value;
-    storage_t<T,E> contained;
 };
 
 // Relational operators
@@ -313,39 +319,37 @@ private:
 template <typename T, typename E>
 bool operator==( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return bool(x) != bool(y) ? false : bool(x) == false ? true : *x == *y;
+    return bool(x) != bool(y) ? false : bool(x) == false ? true : *x == *y;
 }
 
 template <typename T, typename E>
 bool operator!=( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return !(x == y);
+    return !(x == y);
 }
 
 template <typename T, typename E>
 bool operator<( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return (!y) ? false : (!x) ? true : std::less<T>()( *x, *y );
-//  return (!y) ? false : (!x) ? true : *x < *y;
-
+    return (!y) ? false : (!x) ? true : std::less<T>()( *x, *y );
 }
 
 template <typename T, typename E>
 bool operator>( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return (y < x);
+    return (y < x);
 }
 
 template <typename T, typename E>
 bool operator<=( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return !(y < x);
+    return !(y < x);
 }
 
 template <typename T, typename E>
 bool operator>=( expected<T,E> const & x, expected<T,E> const & y )
 {
-  return !(x < y);
+    return !(x < y);
 }
 
 // Comparison with nullexp
@@ -353,73 +357,73 @@ bool operator>=( expected<T,E> const & x, expected<T,E> const & y )
 template <typename T, typename E>
 bool operator==( expected<T,E> const & x, nullexp_t )
 {
-  return (!x);
+    return (!x);
 }
 
 template <typename T, typename E>
 bool operator==( nullexp_t, expected<T,E> const & x )
 {
-  return (!x);
+    return (!x);
 }
 
 template <typename T, typename E>
 bool operator!=( expected<T,E> const & x, nullexp_t )
 {
-  return bool(x);
+    return bool(x);
 }
 
 template <typename T, typename E>
 bool operator!=( nullexp_t, expected<T,E> const & x )
 {
-  return bool(x);
+    return bool(x);
 }
 
 template <typename T, typename E>
 bool operator<( expected<T,E> const &, nullexp_t )
 {
-  return false;
+    return false;
 }
 
 template <typename T, typename E>
 bool operator<( nullexp_t, expected<T,E> const & x )
 {
-  return bool(x);
+    return bool(x);
 }
 
 template <typename T, typename E>
 bool operator<=( expected<T,E> const & x, nullexp_t )
 {
-  return (!x);
+    return (!x);
 }
 
 template <typename T, typename E>
 bool operator<=( nullexp_t, expected<T,E> const & )
 {
-  return true;
+    return true;
 }
 
 template <typename T, typename E>
 bool operator>( expected<T,E> const & x, nullexp_t )
 {
-  return bool(x);
+    return bool(x);
 }
 
 template <typename T, typename E>
 bool operator>( nullexp_t, expected<T,E> const & )
 {
-  return false;
+    return false;
 }
 
 template <typename T, typename E>
 bool operator>=( const expected<T,E>&, nullexp_t )
 {
-  return true;
+    return true;
 }
 
 template <typename T, typename E>
 bool operator>=( nullexp_t, expected<T,E> const & x )
 {
-  return (!x);
+    return (!x);
 }
 
 // Comparison with T
@@ -427,81 +431,73 @@ bool operator>=( nullexp_t, expected<T,E> const & x )
 template <typename T, typename E>
 bool operator==( expected<T,E> const & x, T const & v )
 {
-  return bool(x) ? *x == v : false;
+    return bool(x) ? *x == v : false;
 }
 
 template <typename T, typename E>
 bool operator==(T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? v == *x : false;
+    return bool(x) ? v == *x : false;
 }
 
 template <typename T, typename E>
 bool operator!=( expected<T,E> const & x, T const & v )
 {
-  return bool(x) ? *x != v : true;
+    return bool(x) ? *x != v : true;
 }
 
 template <typename T, typename E>
 bool operator!=( T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? v != *x : true;
+    return bool(x) ? v != *x : true;
 }
 
 template <typename T, typename E>
 bool operator<( expected<T,E> const & x, T const & v )
 {
-//  return bool(x) ? *x < v : true;
-  return bool(x) ? std::less<T>()( *x, v ) : true;
+    return bool(x) ? std::less<T>()( *x, v ) : true;
 }
 
 template <typename T, typename E>
 bool operator>( T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? std::greater<T>()( v, *x ) : true;
-//  return bool(x) ? v > *x : true;
+    return bool(x) ? std::less<T>()( *x, v ) : true;
 }
 
 template <typename T, typename E>
 bool operator>( expected<T,E> const & x, T const & v )
 {
-  return bool(x) ? std::greater<T>()( *x, v ) : false;
-//  return bool(x) ? *x > v : false;
+    return bool(x) ? std::less<T>()( v, *x ) : false;
 }
 
 template <typename T, typename E>
 bool operator<( T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? std::less<T>()( v, *x ) : false;
-//  return bool(x) ? v < *x : false;
+    return bool(x) ? std::less<T>()( v, *x ) : false;
 }
 
 template <typename T, typename E>
 bool operator>=( expected<T,E> const & x, T const & v )
 {
-  return bool(x) ? std::greater_equal<T>()( *x, v ): false;
-//  return bool(x) ? *x >= v : false;
+    return bool(x) ? ! std::less<T>()( *x, v ): false;
 }
 
 template <typename T, typename E>
 bool operator<=( T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? std::less_equal<T>()( v, *x ) : false;
-//  return bool(x) ? v <= *x : false;
+    return bool(x) ? ! std::less<T>()( *x, v ) : false;
 }
 
 template <typename T, typename E>
 bool operator<=( expected<T,E> const & x, T const & v )
 {
-  return bool(x) ? std::less_equal<T>()( *x, v ) : true;
-//  return bool(x) ? *x <= v : true;
+    return bool(x) ? ! std::less<T>()( v, *x ) : true;
 }
 
 template <typename T, typename E>
 bool operator>=( T const & v, expected<T,E> const & x )
 {
-  return bool(x) ? std::less_equal<T>()( *x, v ) : true;
-//  return bool(x) ? *x <= v : true;
+    return bool(x) ? ! std::less<T>()( v, *x ) : true;
 }
 
 // Specialized algorithms
