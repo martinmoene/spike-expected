@@ -28,6 +28,26 @@ namespace nonstd {
 
 #define NONSTD_EXPECTED_LITE_MAX( a, b ) ( (a) > (b) ? a : b )
 
+namespace detail {
+
+// GotW #28, http://www.gotw.ca/gotw/028.htm
+
+union max_align
+{
+    short       _0;
+    long        _1;
+    double      _2;
+    long double _3;
+    void*       _4;
+    void      (*_5)();
+    // ...pointers to member functions,
+    // pointers to member data,
+    // pointers to classes,
+    // eye of newt, ...
+};
+
+} // namespace detail
+
 template <typename T, typename E>
 class expected;
 
@@ -113,7 +133,7 @@ private:
         return reinterpret_cast<U*>( const_cast<unsigned char *>( buffer ) );
     }
 
-    unsigned char dummy;
+    detail::max_align hack;
     unsigned char buffer[ NONSTD_EXPECTED_LITE_MAX( sizeof(T), sizeof(E) ) ];
 };
 
