@@ -248,37 +248,6 @@ public:
                                                                    contained.construct_error( t );
                                                                    swap( has_value, rhs.has_value );
                                                                  }
-
-#if 0
-        if ( has_value )
-        {
-            if ( rhs.has_value )
-            {
-                swap( contained.value(), rhs.contained.value() );
-            }
-            else
-            {
-                error_type t = rhs.contained.error();
-
-                rhs.contained.destruct_error();
-                rhs.contained.construct_value( contained.value() );
-                contained.construct_error( t );
-
-                swap( has_value, rhs.has_value );
-            }
-        }
-        else
-        {
-            if ( rhs.has_value )
-            {
-                rhs.swap( *this );
-            }
-            else
-            {
-                swap( contained.error(), rhs.contained.error() );
-            }
-        }
-#endif
     }
 
     // observers
@@ -487,7 +456,8 @@ bool operator>( T const & v, expected<T,E> const & x )
 template <typename T, typename E>
 bool operator>( expected<T,E> const & x, T const & v )
 {
-    return bool(x) ? std::less<T>()( v, *x ) : false;
+//    return bool(x) ? std::less<T>()( v, *x ) : false;
+    return bool(x) ? *x > v : false;
 }
 
 template <typename T, typename E>
@@ -523,17 +493,50 @@ bool operator>=( T const & v, expected<T,E> const & x )
 // Specialized algorithms
 
 template <typename T, typename E>
-void swap( expected<T,E> & x, expected<T,E> & y)
+void swap( expected<T,E> & x, expected<T,E> & y )
 {
   x.swap( y );
 }
 
-// template <typename T, typename E> expected<see below> make_optional(T&&);
-
-// hash support
-//template <typename T, typename E> struct hash;
-//template <typename T, typename E> struct hash<expected<T,E> >;
+template <typename T>
+expected<T> make_expected( T const & v )
+{
+  return expected<T>( v );
+}
 
 } // namespace nonstd
+
+namespace std {
+
+#if __cplusplus >= 201103L
+
+// hash support
+
+template <typename T>
+struct hash<nonstd::expected<T>>
+{
+    typedef typename hash<T>::result_type result_type;
+    typedef nonstd::expected<T> argument_type;
+
+    constexpr result_type operator()(argument_type const & arg) const
+    {
+        return arg ? std::hash<T>{}(*arg) : result_type{};
+    }
+};
+
+template <typename T>
+struct hash<nonstd::expected<T&>>
+{
+    typedef typename hash<T>::result_type result_type;
+    typedef nonstd::expected<T&> argument_type;
+
+    constexpr result_type operator()(argument_type const & arg) const
+    {
+        return arg ? std::hash<T>{}(*arg) : result_type{};
+    }
+};
+#endif // C++11
+
+} // namespace std
 
 #endif // NONSTD_EXPECTED_LITE_HPP
