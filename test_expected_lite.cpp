@@ -260,59 +260,129 @@ TEST(bad_relops)
 //  assert (ra > b);
 };
 
-//
-//TEST(mixed_equality)
-//{
-//  using namespace nonstd;
-//
-//  assert (make_expected(0) == 0);
-//  assert (make_expected(1) == 1);
-//  assert (make_expected(0) != 1);
-//  assert (make_expected(1) != 0);
-//
-//  expected<int> oN {nullexp};
-//  expected<int> o0 {0};
-//  expected<int> o1 {1};
-//
-//  assert (o0 ==  0);
-//  assert ( 0 == o0);
-//  assert (o1 ==  1);
-//  assert ( 1 == o1);
-//  assert (o1 !=  0);
-//  assert ( 0 != o1);
-//  assert (o0 !=  1);
-//  assert ( 1 != o0);
-//
-//  assert ( 1 != oN);
-//  assert ( 0 != oN);
-//  assert (oN !=  1);
-//  assert (oN !=  0);
-//  assert (!( 1 == oN));
-//  assert (!( 0 == oN));
-//  assert (!(oN ==  1));
-//  assert (!(oN ==  0));
-//
-//  std::string cat{"cat"}, dog{"dog"};
-//  expected<std::string> oNil{}, oDog{"dog"}, oCat{"cat"};
-//
-//  assert (oCat ==  cat);
-//  assert ( cat == oCat);
-//  assert (oDog ==  dog);
-//  assert ( dog == oDog);
-//  assert (oDog !=  cat);
-//  assert ( cat != oDog);
-//  assert (oCat !=  dog);
-//  assert ( dog != oCat);
-//
-//  assert ( dog != oNil);
-//  assert ( cat != oNil);
-//  assert (oNil !=  dog);
-//  assert (oNil !=  cat);
-//  assert (!( dog == oNil));
-//  assert (!( cat == oNil));
-//  assert (!(oNil ==  dog));
-//  assert (!(oNil ==  cat));
-//};
+
+TEST(mixed_equality)
+{
+  using namespace nonstd;
+
+  assert (make_expected(0) == 0);
+  assert (make_expected(1) == 1);
+  assert (make_expected(0) != 1);
+  assert (make_expected(1) != 0);
+
+  expected<int> oN {nullexp};
+  expected<int> o0 {0};
+  expected<int> o1 {1};
+
+  assert (o0 ==  0);
+  assert ( 0 == o0);
+  assert (o1 ==  1);
+  assert ( 1 == o1);
+  assert (o1 !=  0);
+  assert ( 0 != o1);
+  assert (o0 !=  1);
+  assert ( 1 != o0);
+
+  assert ( 1 != oN);
+  assert ( 0 != oN);
+  assert (oN !=  1);
+  assert (oN !=  0);
+  assert (!( 1 == oN));
+  assert (!( 0 == oN));
+  assert (!(oN ==  1));
+  assert (!(oN ==  0));
+
+  std::string cat{"cat"}, dog{"dog"};
+  expected<std::string> oNil{}, oDog{"dog"}, oCat{"cat"};
+
+  assert (oCat ==  cat);
+  assert ( cat == oCat);
+  assert (oDog ==  dog);
+  assert ( dog == oDog);
+  assert (oDog !=  cat);
+  assert ( cat != oDog);
+  assert (oCat !=  dog);
+  assert ( dog != oCat);
+
+  assert ( dog != oNil);
+  assert ( cat != oNil);
+  assert (oNil !=  dog);
+  assert (oNil !=  cat);
+  assert (!( dog == oNil));
+  assert (!( cat == oNil));
+  assert (!(oNil ==  dog));
+  assert (!(oNil ==  cat));
+};
+
+#if __cplusplus >= 201103L
+
+#include <unordered_set>
+
+TEST(expected_hashing)
+{
+    using namespace nonstd;
+    using std::string;
+
+    std::hash<int> hi;
+    std::hash<expected<int>> hoi;
+    std::hash<string> hs;
+    std::hash<expected<string>> hos;
+
+    assert (hi(0) == hoi(expected<int>{0}));
+    assert (hi(1) == hoi(expected<int>{1}));
+    assert (hi(3198) == hoi(expected<int>{3198}));
+
+    assert (hs("") == hos(expected<string>{""}));
+    assert (hs("0") == hos(expected<string>{"0"}));
+    assert (hs("Qa1#") == hos(expected<string>{"Qa1#"}));
+
+    std::unordered_set<expected<string>> set;
+    assert(set.find({"Qa1#"}) == set.end());
+
+    set.insert({"0"});
+    assert(set.find({"Qa1#"}) == set.end());
+
+    set.insert({"Qa1#"});
+    assert(set.find({"Qa1#"}) != set.end());
+};
+#endif // C++11
+
+struct Combined
+{
+  int m = 0;
+  int n = 1;
+
+  constexpr Combined() : m{5}, n{6} {}
+  constexpr Combined(int m, int n) : m{m}, n{n} {}
+};
+
+struct Nasty
+{
+  int m = 0;
+  int n = 1;
+
+  constexpr Nasty() : m{5}, n{6} {}
+  constexpr Nasty(int m, int n) : m{m}, n{n} {}
+
+  int operator&() { return n; }
+  int operator&() const { return n; }
+};
+
+TEST(arrow_operator)
+{
+  using namespace nonstd;
+
+  expected<Combined> oc1{emplace, 1, 2};
+  assert (oc1);
+  assert (oc1->m == 1);
+  assert (oc1->n == 2);
+
+  expected<Nasty> on{emplace, 1, 2};
+  assert (on);
+  assert (on->m == 1);
+  assert (on->n == 2);
+};
+
 
 int main()
 {
