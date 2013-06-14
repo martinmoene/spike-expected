@@ -22,11 +22,11 @@ nonstd::expected<int> foo()
 nonstd::expected<int> bar()
 {
     return nonstd::expected<int>(
-        nonstd::nullexp, std::make_exception_ptr( std::runtime_error("disengaged" ) ) );
+        nonstd::nullexp, std::make_exception_ptr( std::runtime_error( "disengaged" ) ) );
 }
 
 template <typename T, typename E>
-std::ostream & operator<<(std::ostream & os, nonstd::expected<T,E> const & arg )
+std::ostream & operator<<( std::ostream & os, nonstd::expected<T,E> const & arg )
 {
     return os << arg.value();
 }
