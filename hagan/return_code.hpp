@@ -10,7 +10,11 @@ class return_code
     long m_rc;
 
 public:
+#if __cplusplus >= 201103L
+    ~return_code() noexcept(false)
+#else
     ~return_code()
+#endif
     {
         if ( m_rc < 0 )
             throw m_rc;
