@@ -10,13 +10,13 @@ Feature Comparison
 |------------------------|----------|--------------|-----------------|---------------|---------------|----------------|
 |More information        |          | see [1]      | this work       | see [4]       | see [3]       | see [5]        |
 |                        |          |              |                 |               |               |                |
-|Disengaged information  | possible | no           | yes             | yes           | yes           | yes            |
-|                        |          |              |                 |               |               |                |
 |C++03                   | yes      | no           | yes             | no (check)    | no            | no             |
 |C++11                   | yes      | yes          | no move sem.    | yes           | yes           | yes            |
 |                        |          |              |                 |               |               |                |
+|Disengaged information  | possible | no           | yes             | yes           | yes           | yes            |
 |DefaulConstructible     | T param  | yes          | yes             | no            | no            | no             |
 |Throws on disengaged use| no       | yes, value() | yes, value()    | yes, get()    | yes, get()    | yes, get()     |
+|                        |          |              |                 |               |               |                |
 |Relational operators    | no       | yes          | yes             | no            | no            | no             |
 |References              | wrap     | yes          | no/not yet      | no            | yes           | no             |
 |Chaining                | no       | no           | maybe, separate | maybe         | no            | no             |
@@ -41,7 +41,7 @@ Conference 2007.
 
 [7] Andrei Alexandrescu. [The Power of None (PPT)](http://nwcpp.org/static/talks/2006/The_Power_of_None.ppt). Northwest C++ Usersâ€™ Group. [May 17th, 2006](http://nwcpp.org/may-2006.html).
 
-[8] Jon Jagger. [A Return Type That Doesnâ€™t Like Being Ignored](http://accu.org/var/uploads/journals/overload53-FINAL.pdf#page=18). Overload issue 53, February 2003.
+[8] Jon Jagger. [A Return Type That Doesn't Like Being Ignored](http://accu.org/var/uploads/journals/overload53-FINAL.pdf#page=18). Overload issue 53, February 2003.
 
 [9] Andrei Alexandrescu. [Error Handling in C++: Are we inching towards a total solution?](http://accu.org/index.php/conferences/2002/speakers2002). ACCU Conference 2002.
 
