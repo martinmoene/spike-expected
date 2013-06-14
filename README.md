@@ -13,8 +13,8 @@ Feature Comparison
 |C++03                   | yes      | no           | yes             | no (check)    | no            | no             |
 |C++11                   | yes      | yes          | no move sem.    | yes           | yes           | yes            |
 |                        |          |              |                 |               |               |                |
-|Disengaged information  | possible | no           | yes             | yes           | yes           | yes            |
 |DefaulConstructible     | T param  | yes          | yes             | no            | no            | no             |
+|Disengaged information  | possible | no           | yes             | yes           | yes           | yes            |
 |Throws on disengaged use| no       | yes, value() | yes, value()    | yes, get()    | yes, get()    | yes, get()     |
 |                        |          |              |                 |               |               |                |
 |Relational operators    | no       | yes          | yes             | no            | no            | no             |
