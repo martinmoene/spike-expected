@@ -14,10 +14,11 @@ Feature Comparison
 |                        |          |              |                 |               |               |                |
 |C++03                   | yes      | no           | yes             | yes           | no            | no             |
 |C++11                   | yes      | yes          | no/not yet      | yes           | yes           | yes            |
-|References              | wrap     | yes          | no/not yet      | no            | yes           | no             |
 |                        |          |              |                 |               |               |                |
 |DefaulConstructible     | T param  | yes          | yes             | no            | no            | no             |
 |Throws on disengaged use| no       | yes, value() | yes, value()    | yes, get()    | yes, get()    | yes, get()     |
+|Relational operators    | no       | yes          | yes             | no            | no            | no             |
+|References              | wrap     | yes          | no/not yet      | no            | yes           | no             |
 |Chaining                | no       | no           | maybe, separate | maybe         | no            | no             |
 
 
