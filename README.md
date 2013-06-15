@@ -41,7 +41,7 @@ References
 [6] Andrei Alexandrescu. [Choose your Poison: Exceptions or Error Codes? (PDF)](http://accu.org/content/conf2007/Alexandrescu-Choose_Your_Poison.pdf). ACCU
 Conference 2007.
 
-[7] Andrei Alexandrescu. [The Power of None (PPT)](http://nwcpp.org/static/talks/2006/The_Power_of_None.ppt). Northwest C++ Usersâ€™ Group. [May 17th, 2006](http://nwcpp.org/may-2006.html).
+[7] Andrei Alexandrescu. [The Power of None (PPT)](http://nwcpp.org/static/talks/2006/The_Power_of_None.ppt). Northwest C++ Users' Group. [May 17th, 2006](http://nwcpp.org/may-2006.html).
 
 [8] Jon Jagger. [A Return Type That Doesn't Like Being Ignored](http://accu.org/var/uploads/journals/overload53-FINAL.pdf#page=18). Overload issue 53, February 2003.
 
