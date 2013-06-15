@@ -26,32 +26,32 @@ public:
     ~required()
 #endif
     {
-        if ( ! m_used )
+        if ( m_ignored )
             throw m_value;
     }
 
     required( value_type const & v )
     : m_value( v )
-    , m_used( false )
+    , m_ignored( true )
     {}
 
-    // move "used" state unconditionally, C++03, C++11
+    // move "ignored" state unconditionally, C++03, C++11
     required( required const & other )
     : m_value( other.m_value )
-    , m_used( other.m_used )
+    , m_ignored( other.m_ignored )
     {
-        other.m_used = true;
+        other.m_ignored = false;
     }
 
     operator value_type() const
     {
-        m_used = true;
+        m_ignored = false;
         return m_value;
     }
 
 private:
     value_type m_value;
-    mutable bool m_used;
+    mutable bool m_ignored;
 };
 
 } // namespace nonstd
