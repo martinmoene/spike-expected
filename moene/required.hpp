@@ -1,5 +1,12 @@
-// Copyright 2000 Ken Hagan
-// Exploding return codes.
+// Copyright (C) 2013 Martin Moene.
+//
+// Implementation note: this version targets C++03 and C++11.
+//
+// Use, modification, and distribution is subject to the Boost Software
+// License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
+// http://www.boost.org/LICENSE_1_0.txt)
+//
+// Based on exploding return codes by Ken Hagan.
 // https://groups.google.com/forum/#!msg/comp.lang.c++.moderated/BkZqPfoq3ys/H_PMR8Sat4oJ
 
 #ifndef NONSTD_REQUIRED_H_INCLUDED
@@ -28,8 +35,8 @@ public:
     , m_used( false )
     {}
 
-    // move constructor
-    required( required & other )
+    // move "used" state unconditionally, C++03, C++11
+    required( required const & other )
     : m_value( other.m_value )
     , m_used( other.m_used )
     {
