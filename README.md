@@ -6,21 +6,22 @@ Variations on Expected\<T\> by Andrei Alexandrescu.
 Feature Comparison
 ------------------
 
-|Feature                 |std::pair |std::optional |nonstd::expected |Boost.Expected |Nonco expected |Andrei Expected |
-|------------------------|----------|--------------|-----------------|---------------|---------------|----------------|
-|More information        |          | see [1]      | this work       | see [4]       | see [3]       | see [5]        |
-|                        |          |              |                 |               |               |                |
-|C++03                   | yes      | no           | yes             | no (check)    | no            | no             |
-|C++11                   | yes      | yes          | no move sem. yet| yes           | yes           | yes            |
-|                        |          |              |                 |               |               |                |
-|DefaultConstructible    | T param  | yes          | yes             | no            | no            | no             |
-|Disengaged information  | possible | no           | yes             | yes           | yes           | yes            |
-|Vary disengaged type    | yes      | no           | maybe           | yes           | no            | no             |
-|Throws on disengaged use| no       | yes, value() | yes, value()    | yes, get()    | yes, get()    | yes, get()     |
-|                        |          |              |                 |               |               |                |
-|Relational operators    | no       | yes          | yes             | no            | no            | no             |
-|References              | wrap     | yes          | no/not yet      | no            | yes           | no             |
-|Chaining                | no       | no           | maybe, separate | maybe         | no            | no             |
+|Feature               |nonstd:: required|std::pair |std::optional |nonstd::expected |Boost. Expected|Nonco expected |Andrei Expected |
+|----------------------|-----------------|----------|--------------|-----------------|---------------|---------------|----------------|
+|More information      | see [11]        |          | see [1]      | this work       | see [4]       | see [3]       | see [5]        |
+|                      |                 |          |              |                 |               |               |                |
+|C++03                 | yes             | yes      | no           | yes             | no (union)    | no            | no             |
+|C++11                 | yes             | yes      | yes          | no move sem. yet| yes           | yes           | yes            |
+|                      |                 |          |              |                 |               |               |                |
+|DefaultConstructible  | no              | T param  | yes          | yes             | no            | no            | no             |
+|Disengaged information| no              | possible | no           | yes             | yes           | yes           | yes            |
+|Vary disengaged type  | no              | yes      | no           | maybe           | yes           | no            | no             |
+|Engaged nonuse throws | yes             | no       | no           | policy?         | no            | no            | no             |
+|Disengaged use throws | n/a             | no       | yes, value() | yes, value()    | yes, get()    | yes, get()    | yes, get()     |
+|                      |                 |          |              |                 |               |               |                |
+|Proxy (rel.ops)       | no              | no       | yes          | yes             | no            | no            | no             |
+|References            | no              | no       | yes          | no/not yet      | no            | yes           | no             |
+|Chaining              | no              | no       | no           | maybe, separate | maybe         | no            | no             |
 
 
 
@@ -49,6 +50,12 @@ Conference 2007.
 [10] Ken Hagan et al. [Exploding return codes](https://groups.google.com/d/msg/comp.lang.c++.moderated/BkZqPfoq3ys/H_PMR8Sat4oJ). comp.lang.c++.moderated. 11 February 2000.
 
 
+Notes
+-----
+
+[11] [nonstd:required](): templated version of Ken Hagan's ReturnCode [10].
+
+
 C++11 compiler support
 ----------------------
 
@@ -65,5 +72,7 @@ Other
 * Herb Sutter. [Style Case Study #3: Construction Unions](http://www.gotw.ca/gotw/085.htm). GotW #85. 2009
 
 * Kevin T. Manley. [Using Constructed Types in C++ Unions](http://collaboration.cmc.ec.gc.ca/science/rpn/biblio/ddj/Website/articles/CUJ/2002/0208/manley/manley.htm). C/C++ Users Journal, 20(8), August 2002.
+
+* Andrzej Krzemieński. [Destructors that throw](http://akrzemi1.wordpress.com/2011/09/21/destructors-that-throw/). 21 September 2011.
 
 * Programming in Lua, Section [Relational Metamethods](http://www.lua.org/pil/13.2.html).
