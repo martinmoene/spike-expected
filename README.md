@@ -6,7 +6,7 @@ Variations on Expected\<T\> by Andrei Alexandrescu.
 Feature Comparison
 ------------------
 
-|Feature               |nonstd:: required|std::pair |std::optional |nonstd::expected |Boost. Expected|Nonco expected |Andrei Expected |
+|Feature               |nonstd:: required|std::pair |std::optional |nonstd:: expected|Boost. Expected|Nonco expected |Andrei Expected |
 |----------------------|-----------------|----------|--------------|-----------------|---------------|---------------|----------------|
 |More information      | see [11]        |          | see [1]      | this work       | see [4]       | see [3]       | see [5]        |
 |                      |                 |          |              |                 |               |               |                |
@@ -53,7 +53,7 @@ Conference 2007.
 Notes
 -----
 
-[11] [nonstd:required](): templated version of Ken Hagan's ReturnCode [10].
+[11] [nonstd::required](https://github.com/martinmoene/spike-expected/blob/master/moene/required.hpp): templated version of Ken Hagan's ReturnCode [10].
 
 
 C++11 compiler support
