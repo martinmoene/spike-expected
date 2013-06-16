@@ -19,11 +19,13 @@
 		<Unit filename="alexandrescu/expected.h" />
 		<Unit filename="alexandrescu/test_expected.cpp" />
 		<Unit filename="example1.cpp" />
+		<Unit filename="examples/expected_minimal.hpp" />
+		<Unit filename="examples/expected_use_policy.hpp" />
+		<Unit filename="examples/test_expected_minimal.cpp" />
+		<Unit filename="examples/test_expected_use_policy.cpp" />
 		<Unit filename="exception_c++11.hpp" />
 		<Unit filename="exception_ptr_lite.hpp" />
 		<Unit filename="expected_lite.hpp" />
-		<Unit filename="expected_minimal.hpp" />
-		<Unit filename="expected_use_policy.hpp" />
 		<Unit filename="hagan/return_code.hpp" />
 		<Unit filename="hagan/return_code_fg.hpp" />
 		<Unit filename="hagan/test_return_code.cpp" />
@@ -45,8 +47,6 @@
 		<Unit filename="std_optional/optional.hpp" />
 		<Unit filename="std_optional/test_optional.cpp" />
 		<Unit filename="test_expected_lite.cpp" />
-		<Unit filename="test_expected_minimal.cpp" />
-		<Unit filename="test_expected_use_policy.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
