@@ -23,8 +23,7 @@ public:
 
 struct ignore_policy
 {
-    void use() { }
-    void ignored() {}
+    void use() {}
 };
 
 struct require_policy
