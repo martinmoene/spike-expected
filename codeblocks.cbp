@@ -22,6 +22,8 @@
 		<Unit filename="exception_c++11.hpp" />
 		<Unit filename="exception_ptr_lite.hpp" />
 		<Unit filename="expected_lite.hpp" />
+		<Unit filename="expected_minimal.hpp" />
+		<Unit filename="expected_use_policy.hpp" />
 		<Unit filename="hagan/return_code.hpp" />
 		<Unit filename="hagan/return_code_fg.hpp" />
 		<Unit filename="hagan/test_return_code.cpp" />
@@ -35,12 +37,16 @@
 		<Unit filename="park/expected.hpp" />
 		<Unit filename="park/expected_lite.IN.hpp" />
 		<Unit filename="spikes/constructed_union.cpp" />
+		<Unit filename="spikes/expected_chain.hpp" />
+		<Unit filename="spikes/test_expected_chain.cpp" />
 		<Unit filename="static_visitor.h" />
 		<Unit filename="std_optional/n3527-std_optional_r4.html" />
 		<Unit filename="std_optional/n3527-std_optional_r4.pdf" />
 		<Unit filename="std_optional/optional.hpp" />
 		<Unit filename="std_optional/test_optional.cpp" />
 		<Unit filename="test_expected_lite.cpp" />
+		<Unit filename="test_expected_minimal.cpp" />
+		<Unit filename="test_expected_use_policy.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
