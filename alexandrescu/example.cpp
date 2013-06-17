@@ -6,22 +6,26 @@
 
 // Use example(callee)
 
-Expected<int> parseInt( conststd::string & s )
+Expected<int> parseInt( const std::string & s )
 {
-    int result;
-    ...
+    int result = 0;;
+    bool nonDigit = false;
+    bool tooManyDigits = false;
+    // ...
 
     if( nonDigit )
     {
         return Expected<int>::fromException( std::invalid_argument( "not a number" ) );
     }
 
-    ...
+    // ...
 
     if( tooManyDigits )
     {
         return Expected<int>::fromException( std::out_of_range( "overflow" ) );
-    } ...
+    }
+
+    // ...
 
     return result;
 }
@@ -30,19 +34,26 @@ Expected<int> parseInt( conststd::string & s )
 
 //Caller
 
-strings = readline();
-auto x = parseInt( s ).get();   //throw on error
-auto y = parseInt( s );         //won’t throw
+using namespace std;
 
-if( !y.valid() )
+string readline();
+
+void caller()
 {
-    //handle locally
+    string s = readline();
+    auto x = parseInt( s ).get();   //throw on error
+    auto y = parseInt( s );         //won’t throw
 
-    if( y.hasException<std::invalid_argument>() )
+    if( !y.valid() )
     {
-        // nodigits
-        ...
-    }
+        //handle locally
 
-    y.get(); //just"re"throw
+        if( y.hasException<std::invalid_argument>() )
+        {
+            // nodigits
+            // ...
+        }
+
+        y.get(); //just"re"throw
+    }
 }
