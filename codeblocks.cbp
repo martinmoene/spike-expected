@@ -16,10 +16,11 @@
 		<Unit filename="LICENSE_1_0.txt" />
 		<Unit filename="README.md" />
 		<Unit filename="alexandrescu/example.cpp" />
-		<Unit filename="alexandrescu/expected.h" />
+		<Unit filename="alexandrescu/expected.hpp" />
 		<Unit filename="alexandrescu/test_expected.cpp" />
 		<Unit filename="examples/example_collection.cpp" />
 		<Unit filename="examples/example_disengaged.cpp" />
+		<Unit filename="examples/example_inplace.cpp" />
 		<Unit filename="examples/expected_minimal.hpp" />
 		<Unit filename="examples/expected_use_policy.hpp" />
 		<Unit filename="examples/test_expected_minimal.cpp" />
@@ -36,7 +37,7 @@
 		<Unit filename="moene/static_visitor.h" />
 		<Unit filename="moene/test_expected.cpp" />
 		<Unit filename="moene/test_required.cpp" />
-		<Unit filename="nonco/expected.h" />
+		<Unit filename="nonco/expected.hpp" />
 		<Unit filename="nonco/test_expected.cpp" />
 		<Unit filename="park/expected.hpp" />
 		<Unit filename="park/expected_lite.IN.hpp" />
