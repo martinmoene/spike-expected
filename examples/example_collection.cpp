@@ -55,8 +55,6 @@ int main()
     print( coll );
     std::sort( coll.begin(), coll.end() );
     print( coll );
-
-    return 0; // VC6
 }
 
 // g++ -Wall -Wextra -std=c++11 -I.. -o example_collection.exe example_collection.cpp && example_collection
