@@ -61,6 +61,6 @@ int main()
     return 0; // VC6
 }
 
-// cl -nologo -W3 -EHsc -Ideps example1.cpp && example1
-// g++ -Wall -Wextra -std=c++03 -Ideps -o example1.exe example1.cpp && example1
-// g++ -Wall -Wextra -std=c++11 -o example1.exe example1.cpp && example1
+// cl -nologo -W3 -EHsc -.. -I../deps example1.cpp && example1
+// g++ -Wall -Wextra -std=c++03 -I.. -I../deps -o example1.exe example1.cpp && example1
+// g++ -Wall -Wextra -std=c++11 -I.. -o example1.exe example1.cpp && example1
