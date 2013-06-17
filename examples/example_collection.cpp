@@ -44,13 +44,10 @@ void print( Collection const & c )
 
 int main()
 {
-    std::vector< nonstd::expected<int> > coll;
-
-    coll.push_back( foo() );
-    coll.push_back( foo() );
-    coll.push_back( bar() );
-    coll.push_back( foo() );
-    coll.push_back( foo() );
+    std::vector< nonstd::expected<int> > coll
+    {
+        foo(), foo(), bar(), foo(), foo(),
+    };
 
     print( coll );
     std::sort( coll.begin(), coll.end() );
