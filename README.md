@@ -14,7 +14,7 @@ Feature Comparison
 |C++11                 | yes             | yes      | yes          | no move sem. yet| yes           | yes           | yes            |
 |                      |                 |          |              |                 |               |               |                |
 |DefaultConstructible  | no              | T param  | yes          | yes             | no            | no            | no             |
-|In-place construction | no              | no       | yes          | no/not yet      | yes           | no            | no             |
+|In-place construction | no              | no       | yes          | no/not yet      | yes           | yes           | no             |
 |                      |                 |          |              |                 |               |               |                |
 |Disengaged information| no              | possible | no           | yes             | yes           | yes           | yes            |
 |Vary disengaged type  | no              | yes      | no           | maybe           | yes           | no            | no             |
