@@ -18,7 +18,8 @@
 		<Unit filename="alexandrescu/example.cpp" />
 		<Unit filename="alexandrescu/expected.h" />
 		<Unit filename="alexandrescu/test_expected.cpp" />
-		<Unit filename="example1.cpp" />
+		<Unit filename="examples/example_collection.cpp" />
+		<Unit filename="examples/example_disengaged.cpp" />
 		<Unit filename="examples/expected_minimal.hpp" />
 		<Unit filename="examples/expected_use_policy.hpp" />
 		<Unit filename="examples/test_expected_minimal.cpp" />
@@ -32,6 +33,7 @@
 		<Unit filename="hagan/test_return_code_fg.cpp" />
 		<Unit filename="moene/expected.h" />
 		<Unit filename="moene/required.hpp" />
+		<Unit filename="moene/static_visitor.h" />
 		<Unit filename="moene/test_expected.cpp" />
 		<Unit filename="moene/test_required.cpp" />
 		<Unit filename="nonco/expected.h" />
@@ -41,7 +43,6 @@
 		<Unit filename="spikes/constructed_union.cpp" />
 		<Unit filename="spikes/expected_chain.hpp" />
 		<Unit filename="spikes/test_expected_chain.cpp" />
-		<Unit filename="static_visitor.h" />
 		<Unit filename="std_optional/n3527-std_optional_r4.html" />
 		<Unit filename="std_optional/n3527-std_optional_r4.pdf" />
 		<Unit filename="std_optional/optional.hpp" />
