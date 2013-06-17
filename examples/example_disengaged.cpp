@@ -5,11 +5,6 @@
 // Use, modification, and distribution is subject to the Boost Software
 // License, Version 1.0. (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
-//
-// The idea is based on the Expected<T> class template authored by
-// Andrei Alexandrescu. The interface is based on the std::optional proposal
-// authored by Fernando Cacciola and Andrzej Krzemienski and the
-// Boost.Expected proposal authored by Pierre Talbot.
 
 #include "expected_lite.hpp"
 #include <iostream>
