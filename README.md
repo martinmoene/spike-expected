@@ -10,10 +10,12 @@ Feature Comparison
 |----------------------|-----------------|----------|--------------|-----------------|---------------|---------------|----------------|
 |More information      | see [11]        |          | see [1]      | this work       | see [4]       | see [3]       | see [5]        |
 |                      |                 |          |              |                 |               |               |                |
-|C++03                 | yes             | yes      | no           | yes             | no (union)    | no            | no             |
+|C++03                 | yes             | yes      | no           | yes (subset)    | no (union)    | no            | no             |
 |C++11                 | yes             | yes      | yes          | no move sem. yet| yes           | yes           | yes            |
 |                      |                 |          |              |                 |               |               |                |
 |DefaultConstructible  | no              | T param  | yes          | yes             | no            | no            | no             |
+|In-place construction | no              | no       | yes          | no/not yet      | yes           | no            | no             |
+|                      |                 |          |              |                 |               |               |                |
 |Disengaged information| no              | possible | no           | yes             | yes           | yes           | yes            |
 |Vary disengaged type  | no              | yes      | no           | maybe           | yes           | no            | no             |
 |Engaged nonuse throws | yes             | no       | no           | policy?         | no            | no            | no             |
