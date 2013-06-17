@@ -27,13 +27,13 @@ int to_integer( std::string const & text )
     return static_cast<int>( strtol( text.c_str(), NULL, 0) );
 }
 
-std11::expected<int> print( std11::expected<int> const & v )
+nonstd::expected<int> print( nonstd::expected<int> const & v )
 {
     std::cout << "print: " << v.value() << std::endl;
     return v;
 }
 
-std11::expected<int> print_s( std11::expected<int> const & v )
+nonstd::expected<int> print_s( nonstd::expected<int> const & v )
 {
     if ( v.valid() )
         std::cout << "print_s: " << v.value() << std::endl;
@@ -65,14 +65,14 @@ struct s_printer : public nonstd::static_visitor<std::string>
 
 struct i_doubler : public nonstd::static_visitor<int>
 {
-    typedef std11::expected<int> int_type;
+    typedef nonstd::expected<int> int_type;
     int_type operator()( int_type & element )
     {
         element = 2 * element.value();
         return element;
     }
 
-    typedef std11::expected<std::string> string_type;
+    typedef nonstd::expected<std::string> string_type;
     int_type operator()( string_type & element )
     {
         element = element.value() + element.value();
@@ -82,7 +82,7 @@ struct i_doubler : public nonstd::static_visitor<int>
 
 struct solver : public nonstd::static_visitor<int>
 {
-    typedef std11::expected<int> type;
+    typedef nonstd::expected<int> type;
     type operator()( type & element )
     {
         if ( !element.valid() )
@@ -95,7 +95,7 @@ struct solver : public nonstd::static_visitor<int>
 
 struct thrower : public nonstd::static_visitor<int>
 {
-    typedef std11::expected<int> type;
+    typedef nonstd::expected<int> type;
     int operator()( type & element )
     {
         (void)element.value();
@@ -123,7 +123,7 @@ struct reader : public nonstd::static_visitor<int>
         std::cout << "Type a, b, or c." << std::endl;
     }
 
-    typedef std11::expected<int> type;
+    typedef nonstd::expected<int> type;
     type operator()( int const value )
     {
         char chr;
@@ -131,8 +131,8 @@ struct reader : public nonstd::static_visitor<int>
         if ( std::string::npos == std::string("abc").find( chr ) )
         {
             std::cout << "invalid character: " << chr << std::endl;
-            return std11::expected<int>(
-                std11::exceptional, std::make_exception_ptr( std::runtime_error("not a,b,c") ) );
+            return nonstd::expected<int>(
+                nonstd::exceptional, std::make_exception_ptr( std::runtime_error("not a,b,c") ) );
         }
         std::cout << "valid character: " << chr << std::endl;
         return chr;
@@ -158,8 +158,8 @@ int main()
 {
     try
     {
-        std11::expected<int> err(
-            std11::exceptional, std::make_exception_ptr( std::runtime_error("err") ) );
+        nonstd::expected<int> err(
+            nonstd::exceptional, std::make_exception_ptr( std::runtime_error("err") ) );
 
         err.apply( printer() );
     }
@@ -170,8 +170,8 @@ int main()
 
     try
     {
-        std11::expected<int> err(
-            std11::exceptional, std::make_exception_ptr( std::runtime_error("err") ) );
+        nonstd::expected<int> err(
+            nonstd::exceptional, std::make_exception_ptr( std::runtime_error("err") ) );
 
         err.apply( printer() );
     }
@@ -182,7 +182,7 @@ int main()
 
     try
     {
-        std11::expected<int> ok(0);
+        nonstd::expected<int> ok(0);
 
         ok.apply( reader() )
           .apply( printer() )
@@ -190,7 +190,7 @@ int main()
           .handle( thrower() )
           ;
 
-        std11::expected<int> ee( std11::exceptional, std::make_exception_ptr( std::runtime_error("not a value") ) );
+        nonstd::expected<int> ee( nonstd::exceptional, std::make_exception_ptr( std::runtime_error("not a value") ) );
         ee.apply( printer() );
     }
     catch ( std::exception const & e )
@@ -201,7 +201,7 @@ int main()
 #if 0
     try
     {
-        std11::expected<std::string> ss( "12" );
+        nonstd::expected<std::string> ss( "12" );
 
         ss.apply( s_printer() )
           .handle( i_doubler() )
@@ -210,7 +210,7 @@ int main()
           .apply( printer() )
           ;
 
-        std11::expected<int> vv( 77 );
+        nonstd::expected<int> vv( 77 );
 
         std::cout << "vv.value(): " << vv.value() << std::endl;
         std::cout << "*vv: " << *vv << std::endl;
@@ -220,7 +220,7 @@ int main()
           ;
         print( vv );
 
-        std11::expected<int> ee( std11::exceptional, std::make_exception_ptr( std::runtime_error("not a value") ) );
+        nonstd::expected<int> ee( nonstd::exceptional, std::make_exception_ptr( std::runtime_error("not a value") ) );
 
         vv.swap( ee );
         ee.apply( printer() );
