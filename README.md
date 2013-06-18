@@ -15,6 +15,7 @@ Feature Comparison
 |                      |                 |          |              |                 |               |               |                |
 |DefaultConstructible  | no              | T param  | yes          | yes             | no            | no            | no             |
 |In-place construction | no              | no       | yes          | no/not yet      | yes           | yes           | no             |
+|Literal type          | no              | yes      | yes          | no/not yet      | yes           | no            | no             |
 |                      |                 |          |              |                 |               |               |                |
 |Disengaged information| no              | possible | no           | yes             | yes           | yes           | yes            |
 |Vary disengaged type  | no              | yes      | no           | maybe           | yes           | no            | no             |
@@ -23,7 +24,7 @@ Feature Comparison
 |                      |                 |          |              |                 |               |               |                |
 |Proxy (rel.ops)       | no              | no       | yes          | yes             | no            | no            | no             |
 |References            | no              | no       | yes          | no/not yet      | no            | yes           | no             |
-|Chaining              | no              | no       | no           | maybe, separate | maybe         | no            | no             |
+|Chained visitor(s)    | no              | no       | no           | maybe           | maybe         | no            | no             |
 
 
 
