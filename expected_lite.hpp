@@ -91,7 +91,7 @@ private:
 
     void destruct_error()
     {
-        // Note: VC6 requires the use of the template parameter T
+        // Note: VC6 requires the use of the template parameter E
         error_ptr()->~E();
     }
 
