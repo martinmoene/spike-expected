@@ -3,6 +3,9 @@ expected\<T\>
 
 Variations on Expected\<T\> by Andrei Alexandrescu.
 
+Refer to [this blog](http://martin-moene.blogspot.com/2013/06/exceptionptr-for-c03.html) for more information about exception_ptr lite for C++03.
+
+
 Feature Comparison
 ------------------
 
@@ -79,3 +82,5 @@ Other
 * Andrzej Krzemieński. [Destructors that throw](http://akrzemi1.wordpress.com/2011/09/21/destructors-that-throw/). 21 September 2011.
 
 * Programming in Lua, Section [Relational Metamethods](http://www.lua.org/pil/13.2.html).
+
+* Jon Kalb and Dave Abrahams. [Evil, or Just Misunderstood?](http://cpp-next.com/archive/2012/08/evil-or-just-misunderstood/). 17 August 2012.
