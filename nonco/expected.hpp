@@ -101,6 +101,7 @@ class expected_common {
                 auto exception = std::move(other.m_exception);
                 new(&other.m_storage) storage(std::move(m_storage));
                 new(&m_exception) std::exception_ptr(exception);
+                std::swap(m_valid, other.m_valid);
             }
         } else
             if(other.m_valid) other.swap(*this);
