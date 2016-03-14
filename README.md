@@ -3,6 +3,8 @@ expected\<T\>
 
 Variations on Expected\<T\> by Andrei Alexandrescu.
 
+See also [expected-lite](https://github.com/martinmoene/expected-lite) - Expected objects for C++11 and later.
+
 Refer to [this blog](http://martin-moene.blogspot.com/2013/06/exceptionptr-for-c03.html) for more information about exception_ptr lite for C++03.
 
 
