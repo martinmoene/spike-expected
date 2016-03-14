@@ -199,6 +199,9 @@ class expected :
     expected() {};
 
 public:
+    template<typename U>
+    expected(expected<U>) = delete;
+
     template<class... AA>
     expected(AA&&... arguments) :
         common(std::forward<AA>(arguments)...)
