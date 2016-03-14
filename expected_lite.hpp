@@ -161,7 +161,7 @@ private:
         if ( has_value )
         {
             contained.destruct_value();
-            contained.construct_error( std::exception_ptr() );
+            contained.construct_error( error_type() );
         }
         has_value = false;
     }
@@ -183,13 +183,13 @@ public:
     expected()
     : has_value( false )
     {
-        contained.construct_error( std::exception_ptr() );
+        contained.construct_error( error_type() );
     }
 
     expected( nullexp_t )
     : has_value( false )
     {
-        contained.construct_error( std::exception_ptr() );
+        contained.construct_error( error_type() );
     }
 
     expected( value_type const & rhs )
