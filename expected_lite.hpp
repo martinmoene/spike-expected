@@ -444,50 +444,49 @@ bool operator!=( T const & v, expected<T,E> const & x )
 template <typename T, typename E>
 bool operator<( expected<T,E> const & x, T const & v )
 {
-    return bool(x) ? std::less<T>()( *x, v ) : true;
-}
-
-template <typename T, typename E>
-bool operator>( T const & v, expected<T,E> const & x )
-{
-    return bool(x) ? std::less<T>()( *x, v ) : true;
-}
-
-template <typename T, typename E>
-bool operator>( expected<T,E> const & x, T const & v )
-{
-//    return bool(x) ? std::less<T>()( v, *x ) : false;
-    return bool(x) ? *x > v : false;
+    return bool(x) ? *x < v : true;
 }
 
 template <typename T, typename E>
 bool operator<( T const & v, expected<T,E> const & x )
 {
-    return bool(x) ? std::less<T>()( v, *x ) : false;
-}
-
-template <typename T, typename E>
-bool operator>=( expected<T,E> const & x, T const & v )
-{
-    return bool(x) ? ! std::less<T>()( *x, v ): false;
+    return bool(x) ? v < *x : false;
 }
 
 template <typename T, typename E>
 bool operator<=( T const & v, expected<T,E> const & x )
 {
-    return bool(x) ? ! std::less<T>()( *x, v ) : false;
+    return bool(x) ? ! ( *x < v ) : false;
 }
 
 template <typename T, typename E>
 bool operator<=( expected<T,E> const & x, T const & v )
 {
-    return bool(x) ? ! std::less<T>()( v, *x ) : true;
+    return bool(x) ? ! ( v < *x ) : true;
+}
+
+template <typename T, typename E>
+bool operator>( T const & v, expected<T,E> const & x )
+{
+    return bool(x) ? *x < v : false;
+}
+
+template <typename T, typename E>
+bool operator>( expected<T,E> const & x, T const & v )
+{
+    return bool(x) ? v < *x : false;
+}
+
+template <typename T, typename E>
+bool operator>=( expected<T,E> const & x, T const & v )
+{
+    return bool(x) ? ! ( *x < v ) : false;
 }
 
 template <typename T, typename E>
 bool operator>=( T const & v, expected<T,E> const & x )
 {
-    return bool(x) ? ! std::less<T>()( v, *x ) : true;
+    return bool(x) ? ! ( v < *x ) : true;
 }
 
 // Specialized algorithms
